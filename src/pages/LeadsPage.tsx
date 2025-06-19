@@ -18,6 +18,8 @@ const LeadsPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingLead, setEditingLead] = useState<Lead | null>(null)
+  const [deletePopup, setDeletePopup] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
+  const [logoutPopup, setLogoutPopup] = useState(false)
   const [newLead, setNewLead] = useState({
     firstName: "",
     lastName: "",
@@ -37,9 +39,6 @@ const LeadsPage: React.FC = () => {
   const demoUsers = [
     { id: "507f1f77bcf86cd799439014", name: "Not Assigned" },
   ]
-
-  // Additional details options
-  const additionalDetailsOptions = ["", "Follow up needed", "Follow up required"]
 
   // Fetch leads from the backend
   const fetchLeads = async () => {
@@ -126,16 +125,19 @@ const LeadsPage: React.FC = () => {
     }
   }
 
-  const handleDelete = async (leadId: string) => {
-    if (window.confirm("Are you sure you want to delete this lead?")) {
+  const handleDeleteLead = async (id: string | null) => {
+      if (!id) return
       try {
-        setError(null)
-        await leadsAPI.deleteLead(leadId)
-        setLeads(leads.filter((lead) => lead._id !== leadId))
+        await leadsAPI.deleteLead(id)
+        setLeads(leads.filter((lead) => lead._id !== id))
       } catch (err: any) {
         setError(err.response?.data?.message || "Failed to delete lead")
       }
     }
+
+    const handleDeletePopup = async () => {
+    await handleDeleteLead(deletePopup.id)
+    setDeletePopup({ show: false, id: null })
   }
 
   const handleUpdateLead = async () => {
@@ -243,13 +245,17 @@ const LeadsPage: React.FC = () => {
     setModalError(null)
   }
 
+  // Modified: Open logout popup instead of direct logout
+  const handleLogoutClick = () => {
+    setLogoutPopup(true)
+  }
+
+  // Logout logic
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      localStorage.removeItem("token")
-      localStorage.removeItem("user")
-      sessionStorage.clear()
-      window.location.href = "/login"
-    }
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+    sessionStorage.clear()
+    window.location.href = "/login"
   }
 
   const exportToCSV = () => {
@@ -352,6 +358,8 @@ const LeadsPage: React.FC = () => {
       return "Unknown User"
     }
 
+    
+
     // If userId is a string (ObjectId)
     if (typeof userId === "string" && userId.trim() !== "") {
       console.log("UserId is string:", userId)
@@ -407,7 +415,7 @@ const LeadsPage: React.FC = () => {
             <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
               <User className="w-5 h-5" />
             </button>
-            <button onClick={handleLogout} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200" title="Logout">
+            <button onClick={handleLogoutClick} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200" title="Logout">
               <LogOutIcon className="w-5 h-5" />
             </button>
           </div>
@@ -579,7 +587,7 @@ const LeadsPage: React.FC = () => {
                         </button>
                         <button
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
-                          onClick={() => handleDelete(lead._id)}
+                          onClick={() => setDeletePopup({ show: true, id: lead._id })}
                         >
                           Delete
                         </button>
@@ -591,6 +599,51 @@ const LeadsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        {deletePopup.show && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+            <h2 className="text-lg font-bold mb-3">Confirm Delete</h2>
+            <p className="mb-6">Are you sure you want to delete this</p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+                onClick={() => setDeletePopup({ show: false, id: null })}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                onClick={handleDeletePopup}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Logout Confirmation Popup */}
+      {logoutPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+            <h2 className="text-lg font-bold mb-3">Confirm Logout</h2>
+            <p className="mb-6">Are you sure you want to log out?</p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+                onClick={() => setLogoutPopup(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
 
       {/* Add New Lead Modal */}
@@ -653,6 +706,7 @@ const LeadsPage: React.FC = () => {
                   <input
                     type="tel"
                     value={newLead.phone}
+                    maxLength={10}
                     onChange={(e) => handleNewLeadInputChange("phone", e.target.value)}
                     placeholder="e.g: 8954288547"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-100 p-2"
@@ -691,7 +745,10 @@ const LeadsPage: React.FC = () => {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-100 p-2"
                   >
                     <option value="new">New</option>
-                    <option value="sold">Sold</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="follow-up">Follow-up</option>
+                    <option value="closed">Closed</option>
+                    <option value="converted">Converted</option>
                   </select>
                 </div>
                 <div>
@@ -714,6 +771,7 @@ const LeadsPage: React.FC = () => {
                   <input
                     type="date"
                     value={newLead.lastContact}
+                    max={new Date().toISOString().split("T")[0]}
                     onChange={(e) => handleNewLeadInputChange("lastContact", e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-100 p-2"
                   />
@@ -721,17 +779,12 @@ const LeadsPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Additional Details</label>
-                <select
+                <input
+                  type="text"
                   value={newLead.additionalDetails}
                   onChange={(e) => handleNewLeadInputChange("additionalDetails", e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-100 p-2"
-                >
-                  {additionalDetailsOptions.map((option, index) => (
-                    <option key={index} value={option}>
-                      {option || "Select additional details"}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div className="flex justify-end space-x-3 mt-6">
@@ -919,7 +972,10 @@ const LeadsPage: React.FC = () => {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-100 p-2"
                   >
                     <option value="new">New</option>
-                    <option value="sold">Sold</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="follow-up">Follow-up</option>
+                    <option value="closed">Closed</option>
+                    <option value="converted">Converted</option>
                   </select>
                 </div>
                 <div>
@@ -950,17 +1006,13 @@ const LeadsPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Additional Details</label>
-                <select
-                  value={editingLead.additionalDetails || ""}
-                  onChange={(e) => handleInputChange("additionalDetails", e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-100 p-2"
-                >
-                  {additionalDetailsOptions.map((option, index) => (
-                    <option key={index} value={option}>
-                      {option || "Select additional details"}
-                    </option>
-                  ))}
-                </select>
+                
+                  <input
+                    type="text"
+                    value={editingLead.additionalDetails || ""}
+                    onChange={(e) => handleInputChange("additionalDetails", e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-slate-100 p-2"
+                  />
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button

@@ -19,7 +19,7 @@ interface Lead {
     lastName: string
     email: string
     phone: string
-    status: "new" | "old"
+    status: "new" | "contacted" | "closed" | "follow-up" | "converted";
     source: "reference" | "walk-in"
     service: string
     interest?: {
@@ -91,7 +91,7 @@ interface Car {
     customerContact?: string;
     email?: string;
     purchaseDate?: string;
-    paymentStatus?: 'Completed' | 'Pending';
+    paymentStatus?: 'Completed' | 'Pending' | 'Failed';
     color?: string;
     carNumber?: string;
     brand?: string;

@@ -1,13 +1,12 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Search, Bell, User, Settings, LogOut } from 'lucide-react'
+import { Search, Bell, User, LogOut } from 'lucide-react'
 import { carsAPI } from "../services/api"
 import type { Car } from "../services/api"
 import AddCar from "./AddCar"
 import EditCarModal from "./EditCarModal"
 import ViewCarModal from "./ViewCarModal"
-
 
 const InventoryPage: React.FC = () => {
   const [cars, setCars] = useState<Car[]>([])
@@ -17,6 +16,8 @@ const InventoryPage: React.FC = () => {
   const [selectedCar, setSelectedCar] = useState<Car | null>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [deletePopup, setDeletePopup] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
+  const [logoutPopup, setLogoutPopup] = useState(false)
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("")
@@ -52,10 +53,9 @@ const InventoryPage: React.FC = () => {
     const filtered = cars.filter((car) => {
       // Search by customer name
       const matchesSearch = searchQuery === "" || car.customerName.toLowerCase().includes(searchQuery.toLowerCase())
-
-      const matchesBrand = filterBrand === "" || car.Brand.toLowerCase() === filterBrand.toLowerCase()
-      const matchesStatus = filterStatus === "" || car.status.toLowerCase() === filterStatus.toLowerCase()
-      const matchesColor = filterColor === "" || car.color?.toLowerCase().includes(filterColor.toLowerCase())
+      const matchesBrand = filterBrand === "" || (car.Brand?.toLowerCase() === filterBrand.toLowerCase())
+      const matchesStatus = filterStatus === "" || (car.status?.toLowerCase() === filterStatus.toLowerCase())
+      const matchesColor = filterColor === "" || (car.color?.toLowerCase().includes(filterColor.toLowerCase()))
       const matchesPrice =
         priceRange === "" ||
         (priceRange === "low" && car.price < 1000000) ||
@@ -71,20 +71,17 @@ const InventoryPage: React.FC = () => {
     return filtered
   }, [cars, searchQuery, filterBrand, filterStatus, filterColor, priceRange])
 
-  const handleSortByName = () => {
-    console.log("Sorting by name")
+  // Modified: Open logout popup instead of direct logout
+  const handleLogoutClick = () => {
+    setLogoutPopup(true)
   }
 
+  // Logout logic
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      // Clear any stored authentication data
-      localStorage.removeItem("token")
-      localStorage.removeItem("user")
-      sessionStorage.clear()
-
-      // Redirect to login page or home page
-      window.location.href = "/login" // or wherever your login page is
-    }
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+    sessionStorage.clear()
+    window.location.href = "/login"
   }
 
   const handleAddCar = async (carData: Omit<Car, "id">) => {
@@ -97,16 +94,18 @@ const InventoryPage: React.FC = () => {
     }
   }
 
+  // Fixed: Use response.data
   const handleEditCar = async (id: string, carData: Car) => {
     try {
       const response = await carsAPI.updateCar(id, carData)
-      setCars(cars.map((car) => (car._id === id ? response : car)))
+      setCars(cars.map((car) => (car._id === id ? response.data : car)))
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to update car")
     }
   }
 
-  const handleDeleteCar = async (id: string) => {
+  const handleDeleteCar = async (id: string | null) => {
+    if (!id) return
     try {
       await carsAPI.deleteCar(id)
       setCars(cars.filter((car) => car._id !== id))
@@ -135,6 +134,12 @@ const InventoryPage: React.FC = () => {
     }
   }
 
+  // Delete handler moved out of JSX
+  const handleDeletePopup = async () => {
+    await handleDeleteCar(deletePopup.id)
+    setDeletePopup({ show: false, id: null })
+  }
+
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>
   }
@@ -148,36 +153,31 @@ const InventoryPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
-          {/* Header with border bottom */}
           <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold">Inventory Management</h1>
-
-            {/* Right side icons */}
             <div className="flex items-center space-x-3">
-            <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-              <Search className="w-5 h-5" />
-            </button>
-            <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-              <Bell className="w-5 h-5" />
-            </button>
-            <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-              <User className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
-              title="Logout"
-            >
-              <LogOut className="w-5 h-5 text-gray-700" />
-            </button>
+              <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
+                <Search className="w-5 h-5" />
+              </button>
+              <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
+                <Bell className="w-5 h-5" />
+              </button>
+              <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
+                <User className="w-5 h-5" />
+              </button>
+              {/* Modified: Open logout popup */}
+              <button
+                onClick={handleLogoutClick}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5 text-gray-700" />
+              </button>
+            </div>
           </div>
-          </div>
-
           {/* Controls Row */}
           <div className="flex justify-between items-center gap-4">
-            {/* Left side - Search and Add Car button */}
             <div className="flex items-center gap-4">
-              {/* Search Bar */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
@@ -188,7 +188,6 @@ const InventoryPage: React.FC = () => {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
                 />
               </div>
-
               <button
                 className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded"
                 onClick={() => setShowAddCar(true)}
@@ -196,18 +195,14 @@ const InventoryPage: React.FC = () => {
                 Add New Car
               </button>
             </div>
-
-            {/* Right side - Filters */}
             <div className="flex items-center gap-3">
-              {/* Sort By Button */}
               <button
-                onClick={handleSortByName}
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50 outline-none"
+                disabled
+                title="Sorting is always by name"
               >
                 Sort by Name
               </button>
-
-              {/* Brand Filter */}
               <select
                 value={filterBrand}
                 onChange={(e) => setFilterBrand(e.target.value)}
@@ -221,8 +216,6 @@ const InventoryPage: React.FC = () => {
                 <option value="Honda">Honda</option>
                 <option value="Ford">Ford</option>
               </select>
-
-              {/* Status Filter */}
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -231,11 +224,7 @@ const InventoryPage: React.FC = () => {
                 <option value="">All Status</option>
                 <option value="available">Available</option>
                 <option value="sold">Sold</option>
-                <option value="pending">Pending</option>
-                <option value="maintenance">Maintenance</option>
               </select>
-
-              {/* Color Filter */}
               <select
                 value={filterColor}
                 onChange={(e) => setFilterColor(e.target.value)}
@@ -249,8 +238,6 @@ const InventoryPage: React.FC = () => {
                 <option value="blue">Blue</option>
                 <option value="gray">Gray</option>
               </select>
-
-              {/* Price Range Filter */}
               <select
                 value={priceRange}
                 onChange={(e) => setPriceRange(e.target.value)}
@@ -263,8 +250,6 @@ const InventoryPage: React.FC = () => {
               </select>
             </div>
           </div>
-
-          {/* Results count */}
           <div className="mt-4 text-sm text-gray-600">
             Showing {filteredAndSortedCars.length} of {cars.length} cars
             {searchQuery && <span className="ml-2">for "{searchQuery}"</span>}
@@ -272,8 +257,9 @@ const InventoryPage: React.FC = () => {
         </div>
 
         {/* Modals */}
-        {showAddCar && <AddCar isOpen={showAddCar} onClose={() => setShowAddCar(false)} onCarAdded={fetchCars} />}
-
+        {showAddCar && (
+          <AddCar isOpen={showAddCar} onClose={() => setShowAddCar(false)} onCarAdded={fetchCars} />
+        )}
         {isEditModalOpen && selectedCar && (
           <EditCarModal
             isOpen={isEditModalOpen}
@@ -282,41 +268,23 @@ const InventoryPage: React.FC = () => {
             onUpdate={handleUpdateCar}
           />
         )}
-
         {isViewModalOpen && selectedCar && (
           <ViewCarModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} car={selectedCar} />
         )}
-
         {/* Table */}
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Brand
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Car Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Model
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Car Number</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Condition
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Condition</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -371,7 +339,7 @@ const InventoryPage: React.FC = () => {
                         </button>
                         <button
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
-                          onClick={() => handleDeleteCar(car._id)}
+                          onClick={() => setDeletePopup({ show: true, id: car._id })}
                         >
                           Delete
                         </button>
@@ -384,6 +352,52 @@ const InventoryPage: React.FC = () => {
           </table>
         </div>
       </div>
+      {/* Delete Confirmation Popup */}
+      {deletePopup.show && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+            <h2 className="text-lg font-bold mb-3">Confirm Delete</h2>
+            <p className="mb-6">Are you sure you want to delete this</p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+                onClick={() => setDeletePopup({ show: false, id: null })}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                onClick={handleDeletePopup}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Logout Confirmation Popup */}
+      {logoutPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+            <h2 className="text-lg font-bold mb-3">Confirm Logout</h2>
+            <p className="mb-6">Are you sure you want to log out?</p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+                onClick={() => setLogoutPopup(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

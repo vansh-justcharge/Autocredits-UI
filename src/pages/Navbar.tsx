@@ -18,17 +18,16 @@ const Navbar: React.FC<NavbarProps> = ({ title, tabs, activeTab, setActiveTab })
   const { logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [logoutPopup, setLogoutPopup] = useState(false)
 
+  const handleLogoutClick = () => {
+    setLogoutPopup(true)
+  }
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      // Clear any stored authentication data
-      localStorage.removeItem("token")
-      localStorage.removeItem("user")
-      sessionStorage.clear()
-
-      // Redirect to login page or home page
-      window.location.href = "/login" // or wherever your login page is
-    }
+    localStorage.removeItem("token")
+    localStorage.removeItem("user")
+    sessionStorage.clear()
+    window.location.href = "/login"
   }
 
   const showSettingsIcon = [
@@ -88,7 +87,7 @@ const Navbar: React.FC<NavbarProps> = ({ title, tabs, activeTab, setActiveTab })
             </button>
 
             <button
-              onClick={handleLogout}
+              onClick={handleLogoutClick}
               className="p-2 rounded-full ml-2 bg-gray-100 hover:bg-gray-200"
               title="Logout"
             >
@@ -118,7 +117,7 @@ const Navbar: React.FC<NavbarProps> = ({ title, tabs, activeTab, setActiveTab })
                 </button>
 
                 <button
-                  onClick={handleLogout}
+                 onClick={handleLogoutClick}
                   className="w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
@@ -146,6 +145,29 @@ const Navbar: React.FC<NavbarProps> = ({ title, tabs, activeTab, setActiveTab })
               {tab}
             </button>
           ))}
+          {/* Logout Confirmation Popup */}
+      {logoutPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+            <h2 className="text-lg font-bold mb-3">Confirm Logout</h2>
+            <p className="mb-6">Are you sure you want to log out?</p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+                onClick={() => setLogoutPopup(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
         </div>
       </nav>
     </header>

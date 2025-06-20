@@ -16,6 +16,8 @@ interface ImageData {
   alt?: string
 }
 
+const MAX_IMAGES = 10
+
 export default function AddCar({ isOpen, onClose, onCarAdded }: AddCarProps) {
   const [formData, setFormData] = useState({
     customerName: "",
@@ -36,6 +38,8 @@ export default function AddCar({ isOpen, onClose, onCarAdded }: AddCarProps) {
   })
 
   const [error, setError] = useState<string | null>(null)
+
+  // Image upload logic
   const [images, setImages] = useState<(ImageData | null)[]>([null, null])
 
   const handleInputChange = (field: string, value: any) => {
@@ -45,60 +49,104 @@ export default function AddCar({ isOpen, onClose, onCarAdded }: AddCarProps) {
   const IMAGE_PRESET = import.meta.env.VITE_IMAGE_PRESET
   const CLOUDINARY_URL = import.meta.env.VITE_CLOUDINARY_URL
 
+  // Handle single or multiple uploads in any box
   const handleImageUpload = async (index: number, event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    setError(null)
+    const files = event.target.files
+    if (!files || files.length === 0) return
 
-    if (file) {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("upload_preset", IMAGE_PRESET)
+    const currentImageCount = images.filter(Boolean).length
+    const availableSlots = MAX_IMAGES - currentImageCount
 
+    if (availableSlots <= 0) {
+      setError(`You can upload a maximum of ${MAX_IMAGES} images.`)
+      return
+    }
+
+    const filesToUpload = Array.from(files).slice(0, availableSlots)
+    let newImages = [...images]
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i]
+      const formDataUp = new FormData()
+      formDataUp.append("file", file)
+      formDataUp.append("upload_preset", IMAGE_PRESET)
       try {
         const res = await fetch(CLOUDINARY_URL, {
           method: "POST",
-          body: formData,
+          body: formDataUp,
         })
-
         const data = await res.json()
-        console.log("Image uploaded:", data)
-
-        // Create image object with proper structure
         const imageData: ImageData = {
           url: data.secure_url,
           publicId: data.public_id,
-          alt: `Car image ${index + 1}`,
+          alt: `Car image ${index + i + 1}`,
         }
-
-        setImages((prev) => {
-          const newImages = [...prev]
-          newImages[index] = imageData
-          return newImages
-        })
+        // If uploading into existing empty box, fill it, else add at end
+        if (index + i < newImages.length) {
+          newImages[index + i] = imageData
+        } else {
+          newImages.push(imageData)
+        }
       } catch (error) {
-        console.error("Upload error:", error)
         setError("Failed to upload image. Please try again.")
       }
     }
+
+    // Always keep one extra empty box at the end, unless max reached
+    const validCount = newImages.filter(Boolean).length
+    if (validCount < MAX_IMAGES) {
+      // Remove trailing nulls, then add one empty box
+      newImages = newImages.filter((img, idx) => img !== null || idx < validCount)
+      newImages.push(null)
+    } else {
+      // Remove all trailing nulls if max reached
+      while (newImages.length > 0 && newImages[newImages.length - 1] === null) {
+        newImages.pop()
+      }
+    }
+
+    setImages(newImages)
+  }
+
+  // Remove image and maintain at least one empty box (unless max reached)
+  const handleRemoveImage = (index: number) => {
+    let newImages = [...images]
+    newImages[index] = null
+    // Remove trailing nulls except one at end (unless max reached)
+    let validCount = newImages.filter(Boolean).length
+    if (validCount < MAX_IMAGES) {
+      // Remove trailing nulls except one at end
+      while (newImages.length > 1 && newImages[newImages.length - 1] === null && newImages[newImages.length - 2] === null) {
+        newImages.pop()
+      }
+      // Always ensure one empty box
+      if (newImages.filter(Boolean).length === newImages.length) {
+        newImages.push(null)
+      }
+    } else {
+      // Remove all trailing nulls if max reached
+      while (newImages.length > 0 && newImages[newImages.length - 1] === null) {
+        newImages.pop()
+      }
+    }
+    setImages(newImages)
   }
 
   const handleSubmit = async () => {
     try {
       const validImages = images.filter((img): img is ImageData => img !== null)
-
       const payload = {
         ...formData,
         year: Number.parseInt(formData.year, 10),
         price: Number.parseFloat(formData.price),
         mileage: Number.parseFloat(formData.mileage),
-        images: validImages, // Send as array of objects
+        images: validImages,
       }
-
-      console.log("Payload being sent:", payload)
       await carsAPI.createCar(payload)
       onCarAdded()
       onClose()
     } catch (err: any) {
-      console.error("Submit error:", err)
       setError(err.response?.data?.message || "Failed to add car. Please check the fields and try again.")
     }
   }
@@ -114,7 +162,6 @@ export default function AddCar({ isOpen, onClose, onCarAdded }: AddCarProps) {
             <X size={20} />
           </button>
         </div>
-
         <div className="p-6">
           {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
 
@@ -129,6 +176,7 @@ export default function AddCar({ isOpen, onClose, onCarAdded }: AddCarProps) {
               <InputField
                 label="Contact Number"
                 value={formData.customerContact}
+                maxLength={10}
                 onChange={(e) => handleInputChange("customerContact", e.target.value)}
               />
               <InputField
@@ -147,60 +195,62 @@ export default function AddCar({ isOpen, onClose, onCarAdded }: AddCarProps) {
                 label="Payment status"
                 value={formData.paymentStatus}
                 onChange={(e) => handleInputChange("paymentStatus", e.target.value)}
-                options={["Completed", "Pending"]}
+                options={["Completed", "Pending", "Failed"]}
               />
             </div>
           </div>
 
           <div className="mb-8">
-            <h3 className="text-lg font-medium mb-4">Car Images</h3>
+            <h3 className="text-lg font-medium mb-4">Car Images <span className="text-xs text-gray-500">(Max {MAX_IMAGES})</span></h3>
             <div className="grid grid-cols-2 gap-6">
-              {[0, 1].map((index) => (
+              {images.map((img, index) => (
                 <div key={index} className="relative">
                   <div className="w-full h-64 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex flex-col items-center justify-center relative overflow-hidden">
-                    {images[index] ? (
+                    {img ? (
                       <>
                         <img
-                          src={images[index]?.url || "/placeholder.svg"}
-                          alt={images[index]?.alt || `Car image ${index + 1}`}
+                          src={img.url || "/placeholder.svg"}
+                          alt={img.alt || `Car image ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                         <button
                           type="button"
-                          onClick={() => {
-                            const newImages = [...images]
-                            newImages[index] = null
-                            setImages(newImages)
-                          }}
+                          onClick={() => handleRemoveImage(index)}
                           className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
                         >
                           <X size={16} />
                         </button>
                       </>
                     ) : (
-                      <>
-                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center mb-2">
-                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                        </div>
-                        <p className="text-gray-500 text-sm">Drag your image</p>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(index, e)}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        />
-                      </>
+                      images.filter(Boolean).length < MAX_IMAGES && (
+                        <>
+                          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center mb-2">
+                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </div>
+                          <p className="text-gray-500 text-sm">Upload image(s)</p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => handleImageUpload(index, e)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        </>
+                      )
                     )}
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              {images.filter(Boolean).length} / {MAX_IMAGES} images uploaded
             </div>
           </div>
 
@@ -229,7 +279,7 @@ export default function AddCar({ isOpen, onClose, onCarAdded }: AddCarProps) {
                 value={formData.price}
                 onChange={(e) => handleInputChange("price", e.target.value)}
               />
-              <InputField label="VIN" value={formData.vin} onChange={(e) => handleInputChange("vin", e.target.value)} />
+              <InputField label="VIN" maxLength={17} minLength={17} value={formData.vin} onChange={(e) => handleInputChange("vin", e.target.value)} />
               <InputField
                 label="Mileage"
                 type="number"

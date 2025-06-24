@@ -157,25 +157,25 @@ const PaymentTracking: React.FC = () => {
               <thead>
                 <tr className="text-left border-b border-gray-200">
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase flex items-center">
-                    Customer ID <ChevronDownIcon size={14} className="ml-1" />
+                    Customer ID <ChevronDownIcon className="ml-1 w-5" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Loan ID <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Loan ID <ChevronDownIcon className="ml-1 w-5 inline" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Amount <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Amount <ChevronDownIcon className="ml-1 w-5 inline" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Due Date <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Due Date <ChevronDownIcon className="ml-1 w-5 inline" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Status <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Status <ChevronDownIcon className="ml-1 w-5 inline" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Payment mode <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Payment mode <ChevronDownIcon className="ml-1 w-5 inline" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Action <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Action <ChevronDownIcon className="ml-1 w-5 inline" />
                   </th>
                 </tr>
               </thead>
@@ -211,7 +211,8 @@ const PaymentTracking: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Generate Report</h2>
-              <p className="text-gray-500">Generate Reports...</p>
+              {/* <p className="text-gray-500">Generate Reports...</p> */}
+              <input type="text" className="border border-gray-300 rounded-md p-2 w-[600px]" placeholder="Generate Reports..." />
             </div>
             <button
               onClick={handleExportReport}
@@ -244,19 +245,19 @@ const PaymentTracking: React.FC = () => {
               <thead>
                 <tr className="text-left border-b border-gray-200">
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase flex items-center">
-                    Customer ID <ChevronDownIcon size={14} className="ml-1" />
+                    Customer ID <ChevronDownIcon  className="ml-1 w-5" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Loan ID <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Loan ID <ChevronDownIcon className="ml-1 inline w-5" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Amount <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Amount <ChevronDownIcon  className="ml-1 inline w-5" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Due Date <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Due Date <ChevronDownIcon  className="ml-1 inline w-5" />
                   </th>
                   <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">
-                    Action <ChevronDownIcon size={14} className="ml-1 inline" />
+                    Action <ChevronDownIcon className="ml-1 inline w-5" />
                   </th>
                 </tr>
               </thead>

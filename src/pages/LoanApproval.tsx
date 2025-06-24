@@ -69,7 +69,7 @@ const LoanApproval: React.FC = () => {
             onClick={() => setUserInfoExpanded(!userInfoExpanded)}
           >
             <h2 className="text-xl font-semibold text-gray-900">User basic Information</h2>
-            <ChevronDownIcon className={`transform transition-transform ${userInfoExpanded ? 'rotate-180' : ''}`} size={20} />
+            <ChevronDownIcon className={`transform transition-transform w-5 ${userInfoExpanded ? 'rotate-180' : ''}`} />
           </div>
           {userInfoExpanded && (
             <div className="px-6 pb-6 grid grid-cols-2 gap-x-8 gap-y-4">
@@ -105,7 +105,7 @@ const LoanApproval: React.FC = () => {
             onClick={() => setVehicleInfoExpanded(!vehicleInfoExpanded)}
           >
             <h2 className="text-xl font-semibold text-gray-900">Vehicle Information</h2>
-            <ChevronDownIcon className={`transform transition-transform ${vehicleInfoExpanded ? 'rotate-180' : ''}`} size={20} />
+            <ChevronDownIcon className={`transform transition-transform w-5 ${vehicleInfoExpanded ? 'rotate-180' : ''}`} />
           </div>
           {vehicleInfoExpanded && (
             <div className="px-6 pb-6 grid grid-cols-2 gap-x-8 gap-y-4">
@@ -138,19 +138,19 @@ const LoanApproval: React.FC = () => {
         </div>
 
         {/* Approval Buttons */}
-        <div className="flex space-x-4 mb-6">
+        <div className="flex space-x-4 mb-6 w-max-6xl">
           <button
             onClick={handleLoanApproval}
-            className="flex items-center space-x-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="flex items-center space-x-2 px-6 py-3 bg-[#00000033] text-white rounded-lg hover:bg-[#00000033] transition-colors w-[400px] "
           >
-            <FileTextIcon size={16} />
+            <FileTextIcon className='w-5' />
             <span>Loan Approved</span>
           </button>
           <button
             onClick={handleLoanRejection}
-            className="flex items-center space-x-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="flex items-center space-x-2 px-6 py-3 bg-[#00000033] text-white rounded-lg hover:bg-[#00000033] transition-colors w-[400px]"
           >
-            <FileTextIcon size={16} />
+            <FileTextIcon className='w-5' />
             <span>Loan Reject</span>
           </button>
         </div>
@@ -176,7 +176,7 @@ const LoanApproval: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-600 text-sm">Amount Paid</span>
-              <MoreHorizontalIcon size={16} className="text-gray-400" />
+              <MoreHorizontalIcon  className="text-gray-400 w-6" />
             </div>
             <div className="text-2xl font-bold text-gray-900">₹3,500</div>
             <div className="text-green-600 text-sm">+5%</div>
@@ -184,7 +184,7 @@ const LoanApproval: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-600 text-sm">Due Date</span>
-              <MoreHorizontalIcon size={16} className="text-gray-400" />
+              <MoreHorizontalIcon className="text-gray-400 w-6" />
             </div>
             <div className="text-2xl font-bold text-gray-900">15th Nov</div>
             <div className="text-gray-400 text-sm">N/A</div>
@@ -192,7 +192,7 @@ const LoanApproval: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-600 text-sm">Payment Mode</span>
-              <MoreHorizontalIcon size={16} className="text-gray-400" />
+              <MoreHorizontalIcon  className="text-gray-400 w-6" />
             </div>
             <div className="text-2xl font-bold text-gray-900">Card</div>
             <div className="text-gray-400 text-sm">N/A</div>
@@ -200,7 +200,7 @@ const LoanApproval: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-gray-600 text-sm">Pending EMIs</span>
-              <MoreHorizontalIcon size={16} className="text-gray-400" />
+              <MoreHorizontalIcon className="text-gray-400 w-6" />
             </div>
             <div className="text-2xl font-bold text-gray-900">₹1,200</div>
             <div className="text-red-600 text-sm">-10%</div>
@@ -219,7 +219,7 @@ const LoanApproval: React.FC = () => {
                   <span className="text-green-600 text-sm">-2%</span>
                 </div>
               </div>
-              <MoreHorizontalIcon size={16} className="text-gray-400" />
+              <MoreHorizontalIcon className="text-gray-400 w-6" />
             </div>
             <div className="p-6">
               <ResponsiveContainer width="100%" height={200}>
@@ -236,7 +236,7 @@ const LoanApproval: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Payment Table</h3>
-              <MoreHorizontalIcon size={16} className="text-gray-400" />
+              <MoreHorizontalIcon  className="text-gray-400 w-6" />
             </div>
             <div className="p-6">
               <div className="mb-4">

@@ -9,7 +9,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import LeadsPage from './pages/LeadsPage';
 import InventoryPage from './pages/InventoryPage';
-// import LoansPage from './pages/LoansPage';
+import LoansPage from './pages/LoansPage';
 // import InsurancePage from './pages/InsurancePage';
 // import UserManagementPage from './pages/UserManagementPage';
 // import SalesPage from './pages/SalesPage';
@@ -54,8 +54,8 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
-          {/* <Route
-            path="/dashboard/loans"
+          <Route
+            path="/dashboard/loans/*"
             element={
               <ProtectedRoute>
                 <DashboardLayout>
@@ -64,7 +64,7 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/dashboard/insurance"
             element={
               <ProtectedRoute>

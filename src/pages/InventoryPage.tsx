@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useEffect } from "react"
 import { Search, Bell, User, LogOut } from 'lucide-react'
 import { carsAPI } from "../services/api"
@@ -150,12 +148,12 @@ const InventoryPage: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-6">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-gray-200 gap-4">
             <h1 className="text-2xl font-bold">Inventory Management</h1>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
                 <Search className="w-5 h-5" />
               </button>
@@ -176,26 +174,26 @@ const InventoryPage: React.FC = () => {
             </div>
           </div>
           {/* Controls Row */}
-          <div className="flex justify-between items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="relative">
+          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full md:w-auto">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search by customer name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
                 />
               </div>
               <button
-                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded"
+                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded w-full sm:w-auto"
                 onClick={() => setShowAddCar(true)}
               >
                 Add New Car
               </button>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50 outline-none"
                 disabled
@@ -255,7 +253,6 @@ const InventoryPage: React.FC = () => {
             {searchQuery && <span className="ml-2">for "{searchQuery}"</span>}
           </div>
         </div>
-
         {/* Modals */}
         {showAddCar && (
           <AddCar isOpen={showAddCar} onClose={() => setShowAddCar(false)} onCarAdded={fetchCars} />
@@ -272,19 +269,19 @@ const InventoryPage: React.FC = () => {
           <ViewCarModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} car={selectedCar} />
         )}
         {/* Table */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="bg-white shadow overflow-x-auto sm:rounded-lg">
+          <table className="min-w-[700px] sm:min-w-full divide-y divide-gray-200">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Car Number</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Condition</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Car Number</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Condition</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -299,18 +296,18 @@ const InventoryPage: React.FC = () => {
               ) : (
                 filteredAndSortedCars.map((car) => (
                   <tr key={car._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {car.customerName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.Brand}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.carNumber}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.model}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.year}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.Brand}</td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.carNumber}</td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.model}</td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.year}</td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       ₹{car.price.toLocaleString("en-IN")}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.condition || "Good"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.condition || "Good"}</td>
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
                           car.status === "available"
@@ -323,8 +320,8 @@ const InventoryPage: React.FC = () => {
                         {car.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex gap-2">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex gap-2 flex-wrap">
                         <button
                           className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors"
                           onClick={() => handleViewDetails(car)}
@@ -355,7 +352,7 @@ const InventoryPage: React.FC = () => {
       {/* Delete Confirmation Popup */}
       {deletePopup.show && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs mx-2 text-center">
             <h2 className="text-lg font-bold mb-3">Confirm Delete</h2>
             <p className="mb-6">Are you sure you want to delete this</p>
             <div className="flex justify-center gap-4">
@@ -378,7 +375,7 @@ const InventoryPage: React.FC = () => {
       {/* Logout Confirmation Popup */}
       {logoutPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs mx-2 text-center">
             <h2 className="text-lg font-bold mb-3">Confirm Logout</h2>
             <p className="mb-6">Are you sure you want to log out?</p>
             <div className="flex justify-center gap-4">

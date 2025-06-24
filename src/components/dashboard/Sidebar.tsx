@@ -7,7 +7,7 @@ const menuItems = [
   { name: 'Dashboard', icon: SidebarIcons.Dashboard, path: '/dashboard' },
   { name: 'Leads', icon: SidebarIcons.Leads, path: '/dashboard/leads' },
   { name: 'Inventory', icon: SidebarIcons.Inventory, path: '/dashboard/inventory' },
-  // { name: 'Loans', icon: SidebarIcons.Loans, path: '/dashboard/loans' },
+  { name: 'Loans', icon: SidebarIcons.Loans, path: '/dashboard/loans' },
   // { name: 'Insurance', icon: SidebarIcons.Insurance, path: '/dashboard/insurance' },
   // { name: 'Sales / Finance', icon: SidebarIcons.Sales, path: '/dashboard/sales' },
   // { name: 'User Management', icon: SidebarIcons.UserManagement, path: '/dashboard/user-management' },

@@ -3,291 +3,449 @@ import axios from "axios"
 const API_URL = (import.meta.env.VITE_BACKEND_API_URL || "https://autocredits-backend.onrender.com").replace(/\/$/, "")
 
 interface User {
-    id: string
-    email: string
-    firstName: string
-    lastName: string
-    role: string
-    isActive: boolean
-    emailVerified: boolean
-    lastLogin?: Date
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  role: string
+  isActive: boolean
+  emailVerified: boolean
+  lastLogin?: Date
 }
 
 interface Lead {
-    _id: string
-    firstName: string
-    lastName: string
-    email: string
-    phone: string
-    status: "new" | "contacted" | "closed" | "follow-up" | "converted";
-    source: "reference" | "walk-in"
-    service: string
-    interest?: {
-        car?: string
-        make?: string
-        model?: string
-        year?: number
-        budget?: {
-            min?: number
-            max?: number
-        }
+  _id: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  status: "new" | "contacted" | "closed" | "follow-up" | "converted"
+  source: "reference" | "walk-in"
+  service: string
+  interest?: {
+    car?: string
+    make?: string
+    model?: string
+    year?: number
+    budget?: {
+      min?: number
+      max?: number
     }
-    notes?: Array<{
-        content: string
-        createdBy: string
-        createdAt: string
-    }>
-    assignedTo?: string
-    lastContact?: string
-    nextFollowUp?: string
-    tags?: string[]
-    additionalDetails?: string
+  }
+  notes?: Array<{
+    content: string
+    createdBy: string
     createdAt: string
-    updatedAt: string
+  }>
+  assignedTo?: string
+  lastContact?: string
+  nextFollowUp?: string
+  tags?: string[]
+  additionalDetails?: string
+  createdAt: string
+  updatedAt: string
 }
 
 interface AuthResponse {
-    status: string
-    data: {
-        token: string
-        user: User
-    }
+  status: string
+  data: {
+    token: string
+    user: User
+  }
 }
 
 interface LeadsResponse {
-    status: string
-    data: {
-        leads: {
-            data: Lead[]
-            total: number
-            page: number
-            totalPages: number
-            hasNextPage: boolean
-            hasPrevPage: boolean
-        }
+  status: string
+  data: {
+    leads: {
+      data: Lead[]
+      total: number
+      page: number
+      totalPages: number
+      hasNextPage: boolean
+      hasPrevPage: boolean
     }
+  }
 }
 
 interface LeadResponse {
-    status: string
-    data: {
-        lead: Lead
-    }
+  status: string
+  data: {
+    lead: Lead
+  }
 }
 
 interface Car {
-    _id: string;
-    Brand: string;
-    model: string;
-    year: number;
-    price: number;
-    mileage: number;
-    vin: string;
-    condition: 'new' | 'used';
-    status: 'available' | 'sold';
-    features?: string[];
-    images?: { url: string; alt: string }[];
-    customerName?: string;
-    customerContact?: string;
-    email?: string;
-    purchaseDate?: string;
-    paymentStatus?: 'Completed' | 'Pending' | 'Failed';
-    color?: string;
-    carNumber?: string;
-    brand?: string;
+  _id: string
+  Brand: string
+  model: string
+  year: number
+  price: number
+  mileage: number
+  vin: string
+  condition: "new" | "used"
+  status: "available" | "sold"
+  features?: string[]
+  images?: { url: string; alt: string }[]
+  customerName?: string
+  customerContact?: string
+  email?: string
+  purchaseDate?: string
+  paymentStatus?: "Completed" | "Pending" | "Failed"
+  color?: string
+  carNumber?: string
+  brand?: string
+}
+
+// ---- LoanCase Types ----
+interface ClientInfo {
+  name: string
+  phone: string | number // Updated to handle both string and number
+  email: string
+  address: string
+  date: string
+}
+
+interface VehicleInfo {
+  brand: string
+  model: string
+  year: string | number
+  type: string
+}
+
+interface LoanDetails {
+  bank: string
+  interestRate: string
+  tenure: string
+}
+
+interface CaseDetails {
+  source: string
+  showroom: string
+  assignedTo: string
+}
+
+interface CaseUpdate {
+  status: string
+  addedOn: string
+  documents?: string
+  inactive?: boolean
+}
+
+export interface LoanCase {
+  _id: string
+  clientInfo: ClientInfo
+  vehicleInfo: VehicleInfo
+  loanDetails: LoanDetails
+  caseDetails: CaseDetails
+  caseUpdate: CaseUpdate
+  createdAt?: string
+  updatedAt?: string
+}
+
+interface LoanCasesResponse {
+  status: string
+  data: {
+    loanCases: LoanCase[]
+    total: number
+    page: number
+    pageCount: number
+    hasNextPage?: boolean
+    hasPrevPage?: boolean
+  }
+}
+
+interface LoanCaseResponse {
+  status: string
+  data: {
+    loanCase: LoanCase
+  }
 }
 
 const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-        "Content-Type": "application/json",
-    },
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 })
 
 // Request interceptor for adding auth token
 api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem("token")
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`
-        }
-        return config
-    },
-    (error) => {
-        return Promise.reject(error)
-    },
+  (config) => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  },
 )
 
 // Response interceptor for handling errors
 api.interceptors.response.use(
-    (response) => {
-        return response
-    },
-    async (error) => {
-        if (error.response?.status === 401) {
-            // Only redirect if we're not already on the login page
-            if (!window.location.pathname.includes('/login')) {
-                localStorage.removeItem("token")
-                window.location.href = "/login"
-            }
-        }
-        return Promise.reject(error)
-    },
+  (response) => {
+    return response
+  },
+  async (error) => {
+    if (error.response?.status === 401) {
+      if (!window.location.pathname.includes("/login")) {
+        localStorage.removeItem("token")
+        window.location.href = "/login"
+      }
+    }
+    return Promise.reject(error)
+  },
 )
 
 // Auth API calls
 export const authAPI = {
-    login: async (email: string, password: string): Promise<AuthResponse> => {
-        const response = await api.post<AuthResponse>("/api/auth/login", { email, password })
-        return response.data
-    },
-    register: async (userData: {
-        email: string
-        password: string
-        firstName: string
-        lastName: string
-        role?: string
-    }): Promise<AuthResponse> => {
-        const response = await api.post<AuthResponse>("/api/auth/register", userData)
-        return response.data
-    },
-    logout: () => {
-        localStorage.removeItem("token")
-        return api.post("/api/auth/logout")
-    },
-    getCurrentUser: async (): Promise<User> => {
-        const response = await api.get<{ status: string; data: { user: User } }>("/api/auth/me")
-        return response.data.data.user
-    },
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>("/api/auth/login", { email, password })
+    return response.data
+  },
+  register: async (userData: {
+    email: string
+    password: string
+    name: string
+    role?: string
+  }): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>("/api/auth/register", userData)
+    return response.data
+  },
+  logout: () => {
+    localStorage.removeItem("token")
+    return api.post("/api/auth/logout")
+  },
+  getCurrentUser: async (): Promise<User> => {
+    const response = await api.get<{ status: string; data: { user: User } }>("/api/auth/me")
+    return response.data.data.user
+  },
 }
 
 // Leads API calls
 export const leadsAPI = {
-    getLeads: async (params?: {
-        status?: string
-        source?: string
-        service?: string
-        assignedTo?: string
-        page?: number
-        limit?: number
-    }): Promise<LeadsResponse> => {
-        const response = await api.get("/api/leads", { params })
-        return response.data
-    },
+  getLeads: async (params?: {
+    status?: string
+    source?: string
+    service?: string
+    assignedTo?: string
+    page?: number
+    limit?: number
+  }): Promise<LeadsResponse> => {
+    const response = await api.get("/api/leads", { params })
+    return response.data
+  },
 
-    getLead: async (id: string): Promise<LeadResponse> => {
-        const response = await api.get(`/api/leads/${id}`)
-        return response.data
-    },
+  getLead: async (id: string): Promise<LeadResponse> => {
+    const response = await api.get(`/api/leads/${id}`)
+    return response.data
+  },
 
-    createLead: async (leadData: Omit<Lead, "_id" | "createdAt" | "updatedAt">): Promise<LeadResponse> => {
-        const response = await api.post("/api/leads", leadData)
-        return response.data
-    },
+  createLead: async (leadData: Omit<Lead, "_id" | "createdAt" | "updatedAt">): Promise<LeadResponse> => {
+    const response = await api.post("/api/leads", leadData)
+    return response.data
+  },
 
-    updateLead: async (id: string, leadData: Partial<Lead>): Promise<LeadResponse> => {
-        const response = await api.patch(`/api/leads/${id}`, leadData)
-        return response.data
-    },
+  updateLead: async (id: string, leadData: Partial<Lead>): Promise<LeadResponse> => {
+    const response = await api.patch(`/api/leads/${id}`, leadData)
+    return response.data
+  },
 
-    deleteLead: async (id: string): Promise<void> => {
-        await api.delete(`/api/leads/${id}`)
-    },
+  deleteLead: async (id: string): Promise<void> => {
+    await api.delete(`/api/leads/${id}`)
+  },
 
-    addNote: async (id: string, content: string): Promise<LeadResponse> => {
-        const response = await api.post(`/api/leads/${id}/notes`, { content })
-        return response.data
-    },
+  addNote: async (id: string, content: string): Promise<LeadResponse> => {
+    const response = await api.post(`/api/leads/${id}/notes`, { content })
+    return response.data
+  },
 
-    updateStatus: async (id: string, status: Lead["status"]): Promise<LeadResponse> => {
-        const response = await api.patch(`/api/leads/${id}/status`, { status })
-        return response.data
-    },
+  updateStatus: async (id: string, status: Lead["status"]): Promise<LeadResponse> => {
+    const response = await api.patch(`/api/leads/${id}/status`, { status })
+    return response.data
+  },
 
-    exportLeads: async (format: "csv" = "csv"): Promise<Blob> => {
-        const response = await api.get("/api/leads/export", {
-            params: { format },
-            responseType: "blob",
-        })
-        return response.data
-    },
+  exportLeads: async (format: "csv" = "csv"): Promise<Blob> => {
+    const response = await api.get("/api/leads/export", {
+      params: { format },
+      responseType: "blob",
+    })
+    return response.data
+  },
+}
+
+// ----------- LoanCase API calls (UPDATED) -----------
+export const loanCasesAPI = {
+  getLoanCases: async (params?: {
+    name?: string
+    phone?: string
+    source?: string
+    status?: string
+    fromDate?: string
+    toDate?: string
+    caseType?: string
+    page?: number
+    limit?: number
+  }): Promise<LoanCasesResponse> => {
+    try {
+      const response = await api.get("/api/loancases", { params })
+      return response.data
+    } catch (error) {
+      console.error("Get loan cases error:", error)
+      throw error
+    }
+  },
+
+  getLoanCase: async (id: string): Promise<LoanCaseResponse> => {
+    try {
+      const response = await api.get(`/api/loancases/${id}`)
+      return response.data
+    } catch (error) {
+      console.error("Get loan case error:", error)
+      throw error
+    }
+  },
+
+  createLoanCase: async (
+    loanCaseData: Omit<LoanCase, "_id" | "createdAt" | "updatedAt">,
+  ): Promise<LoanCaseResponse> => {
+    try {
+      // Format the data properly before sending
+      const formattedData = {
+        ...loanCaseData,
+        clientInfo: {
+          ...loanCaseData.clientInfo,
+          phone: Number.parseInt(loanCaseData.clientInfo.phone.toString()), // Convert to number
+          date: loanCaseData.clientInfo.date
+            ? new Date(loanCaseData.clientInfo.date).toISOString()
+            : new Date().toISOString(),
+        },
+        caseUpdate: {
+          ...loanCaseData.caseUpdate,
+          addedOn: loanCaseData.caseUpdate.addedOn
+            ? new Date(loanCaseData.caseUpdate.addedOn).toISOString()
+            : new Date().toISOString(),
+        },
+      }
+      const response = await api.post("/api/loancases", formattedData)
+      return response.data
+    } catch (error) {
+      console.error("Create loan case error:", error)
+      throw error
+    }
+  },
+
+  updateLoanCase: async (id: string, loanCaseData: Partial<LoanCase>): Promise<LoanCaseResponse> => {
+    try {
+      // Format phone number if it exists
+      if (loanCaseData.clientInfo?.phone) {
+        loanCaseData.clientInfo.phone = Number.parseInt(loanCaseData.clientInfo.phone.toString())
+      }
+      const response = await api.patch(`/api/loancases/${id}`, loanCaseData)
+      return response.data
+    } catch (error) {
+      console.error("Update loan case error:", error)
+      throw error
+    }
+  },
+
+  deleteLoanCase: async (id: string): Promise<void> => {
+    try {
+      await api.delete(`/api/loancases/${id}`)
+    } catch (error) {
+      console.error("Delete loan case error:", error)
+      throw error
+    }
+  },
 }
 
 // Cars API calls
 export const carsAPI = {
-    getCars: async (): Promise<any> => {
-        const response = await api.get("/api/cars")
-        return response.data
-    },
+  getCars: async (): Promise<any> => {
+    const response = await api.get("/api/cars")
+    return response.data
+  },
 
-    getCar: async (id: string): Promise<any> => {
-        const response = await api.get(`/api/cars/${id}`)
-        return response.data
-    },
+  getCar: async (id: string): Promise<any> => {
+    const response = await api.get(`/api/cars/${id}`)
+    return response.data
+  },
 
-    createCar: async (carData: any): Promise<any> => {
-        const response = await api.post("/api/cars", carData)
-        return response.data
-    },
+  createCar: async (carData: any): Promise<any> => {
+    const response = await api.post("/api/cars", carData)
+    return response.data
+  },
 
-    updateCar: async (id: string, carData: any): Promise<any> => {
-        const response = await api.patch(`/api/cars/${id}`, carData)
-        return response.data
-    },
+  updateCar: async (id: string, carData: any): Promise<any> => {
+    const response = await api.patch(`/api/cars/${id}`, carData)
+    return response.data
+  },
 
-    deleteCar: async (id: string): Promise<void> => {
-        await api.delete(`/api/cars/${id}`)
-    },
+  deleteCar: async (id: string): Promise<void> => {
+    await api.delete(`/api/cars/${id}`)
+  },
 
-    searchCars: async (query: string): Promise<any[]> => {
-        const response = await api.get(`/api/cars/search?q=${query}`)
-        return response.data
-    },
+  searchCars: async (query: string): Promise<any[]> => {
+    const response = await api.get(`/api/cars/search?q=${query}`)
+    return response.data
+  },
 }
 
 // Sales API calls
 export const salesAPI = {
-    getSales: async (): Promise<any[]> => {
-        const response = await api.get("/sales")
-        return response.data
-    },
+  getSales: async (): Promise<any[]> => {
+    const response = await api.get("/sales")
+    return response.data
+  },
 
-    createSale: async (saleData: any): Promise<any> => {
-        const response = await api.post("/sales", saleData)
-        return response.data
-    },
+  createSale: async (saleData: any): Promise<any> => {
+    const response = await api.post("/sales", saleData)
+    return response.data
+  },
 
-    updateSale: async (id: string, saleData: any): Promise<any> => {
-        const response = await api.put(`/sales/${id}`, saleData)
-        return response.data
-    },
+  updateSale: async (id: string, saleData: any): Promise<any> => {
+    const response = await api.put(`/sales/${id}`, saleData)
+    return response.data
+  },
 
-    deleteSale: async (id: string): Promise<void> => {
-        await api.delete(`/sales/${id}`)
-    },
+  deleteSale: async (id: string): Promise<void> => {
+    await api.delete(`/sales/${id}`)
+  },
 }
 
 // Users API calls
 export const usersAPI = {
-    getUsers: async (): Promise<any[]> => {
-        const response = await api.get("/users")
-        return response.data
-    },
+  getUsers: async (): Promise<any[]> => {
+    const response = await api.get("/users")
+    return response.data
+  },
 
-    createUser: async (userData: any): Promise<any> => {
-        const response = await api.post("/users", userData)
-        return response.data
-    },
+  createUser: async (userData: any): Promise<any> => {
+    const response = await api.post("/users", userData)
+    return response.data
+  },
 
-    updateUser: async (id: string, userData: any): Promise<any> => {
-        const response = await api.put(`/users/${id}`, userData)
-        return response.data
-    },
+  updateUser: async (id: string, userData: any): Promise<any> => {
+    const response = await api.put(`/users/${id}`, userData)
+    return response.data
+  },
 
-    deleteUser: async (id: string): Promise<void> => {
-        await api.delete(`/users/${id}`)
-    },
+  deleteUser: async (id: string): Promise<void> => {
+    await api.delete(`/users/${id}`)
+  },
 }
 
-export type { User, Lead, AuthResponse, LeadsResponse, LeadResponse, Car }
+export type {
+  User,
+  Lead,
+  AuthResponse,
+  LeadsResponse,
+  LeadResponse,
+  Car,
+  LoanCase,
+  LoanCasesResponse,
+  LoanCaseResponse,
+}
 export default api

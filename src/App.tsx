@@ -10,8 +10,10 @@ import DashboardPage from './pages/DashboardPage';
 import LeadsPage from './pages/LeadsPage';
 import InventoryPage from './pages/InventoryPage';
 import LoansPage from './pages/LoansPage';
-// import InsurancePage from './pages/InsurancePage';
-// import UserManagementPage from './pages/UserManagementPage';
+import InsurancePage from './pages/InsurancePage';
+import InsuranceModel from './pages/InsuranceModel'; 
+import InsuranceCase from './pages/Insurance_case';
+import UserManagementPage from './pages/UserManagementPage';
 // import SalesPage from './pages/SalesPage';
 // import Profile from './pages/Profile';
 
@@ -64,12 +66,33 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
-          {/* <Route
+          <Route
             path="/dashboard/insurance"
             element={
               <ProtectedRoute>
                 <DashboardLayout>
                   <InsurancePage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          {/* InsuranceModel Route: For View/Edit */}
+          <Route
+            path="/dashboard/insurance/model"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <InsuranceModel />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/insurance-case"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <InsuranceCase />
                 </DashboardLayout>
               </ProtectedRoute>
             }
@@ -84,7 +107,7 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/dashboard/sales"
             element={
               <ProtectedRoute>

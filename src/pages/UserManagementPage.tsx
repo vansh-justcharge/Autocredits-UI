@@ -243,7 +243,7 @@ export default function UserManagementPage() {
     <div className="bg-gray-100 min-h-screen font-sans">
       <Navbar
         title="User Management"
-        tabs={['Overview']}
+        tabs={[]}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />

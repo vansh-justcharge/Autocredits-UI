@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { Search, Bell, User, Download, X, LogOutIcon, Plus } from "lucide-react"
 import { leadsAPI } from "../services/api"
 import type { Lead } from "../services/api"
+import Navbar from "./Navbar"
 
 const LeadsPage: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([])
@@ -396,32 +397,15 @@ const LeadsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-semibold text-gray-900">Leads Management</h1>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-              <Search className="w-5 h-5" />
-            </button>
-            <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-              <Bell className="w-5 h-5" />
-            </button>
-            <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-              <User className="w-5 h-5" />
-            </button>
-            <button onClick={handleLogoutClick} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200" title="Logout">
-              <LogOutIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <Navbar
+          title="Lead Management System"
+          tabs={[]} 
+          activeTab="" 
+          setActiveTab={() => {}} 
+        />
 
       {/* Main Content */}
-      <div className="p-6">
+      <div className="px-4 py-2">
         {/* Search and Filters */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">

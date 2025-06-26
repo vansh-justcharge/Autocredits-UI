@@ -13,13 +13,22 @@ interface User {
   lastLogin?: Date
 }
 
+const enum LeadStatus {
+  New = "new",
+  Contacted = "contacted",
+  Closed = "closed",
+  FollowUp = "follow-up",
+  Converted = "converted",
+}
+
+
 interface Lead {
   _id: string
   firstName: string
   lastName: string
   email: string
   phone: string
-  status: "new" | "contacted" | "closed" | "follow-up" | "converted"
+  status: LeadStatus
   source: "reference" | "walk-in"
   service: string
   interest?: {

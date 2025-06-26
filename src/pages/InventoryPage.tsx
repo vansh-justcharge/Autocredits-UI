@@ -1,257 +1,227 @@
-import React, { useState, useEffect } from "react"
-import { Search, Bell, User, LogOut } from 'lucide-react'
-import { carsAPI } from "../services/api"
-import type { Car } from "../services/api"
-import AddCar from "./AddCar"
-import EditCarModal from "./EditCarModal"
-import ViewCarModal from "./ViewCarModal"
+import React, { useState, useEffect } from "react";
+import { Search, Bell, User, LogOut } from 'lucide-react';
+import { carsAPI } from "../services/api";
+import type { Car } from "../services/api";
+import AddCar from "./AddCar";
+import EditCarModal from "./EditCarModal";
+import ViewCarModal from "./ViewCarModal";
+import Navbar from "./Navbar";
 
 const InventoryPage: React.FC = () => {
-  const [cars, setCars] = useState<Car[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showAddCar, setShowAddCar] = useState(false)
-  const [selectedCar, setSelectedCar] = useState<Car | null>(null)
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [deletePopup, setDeletePopup] = useState<{ show: boolean; id: string | null }>({ show: false, id: null })
-  const [logoutPopup, setLogoutPopup] = useState(false)
+  const [cars, setCars] = useState<Car[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showAddCar, setShowAddCar] = useState(false);
+  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [deletePopup, setDeletePopup] = useState<{ show: boolean; id: string | null }>({ show: false, id: null });
+  const [logoutPopup, setLogoutPopup] = useState(false);
 
   // Search and filter states
-  const [searchQuery, setSearchQuery] = useState("")
-  const [filterBrand, setFilterBrand] = useState("")
-  const [filterStatus, setFilterStatus] = useState("")
-  const [filterColor, setFilterColor] = useState("")
-  const [priceRange, setPriceRange] = useState("")
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterBrand, setFilterBrand] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterColor, setFilterColor] = useState("");
+  const [priceRange, setPriceRange] = useState("");
 
   // Fetch cars from the backend
   const fetchCars = async () => {
     try {
-      const response = await carsAPI.getCars()
+      const response = await carsAPI.getCars();
       if (response && Array.isArray(response.data)) {
-        setCars(response.data)
+        setCars(response.data);
       } else {
-        console.error("API response for cars is not an array:", response)
-        setCars([])
+        setCars([]);
       }
-      setError(null)
+      setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to fetch cars")
+      setError(err.response?.data?.message || "Failed to fetch cars");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchCars()
-  }, [])
+    fetchCars();
+  }, []);
 
   // Filter and sort cars based on search and filters
   const filteredAndSortedCars = React.useMemo(() => {
     const filtered = cars.filter((car) => {
-      // Search by customer name
-      const matchesSearch = searchQuery === "" || car.customerName.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesBrand = filterBrand === "" || (car.Brand?.toLowerCase() === filterBrand.toLowerCase())
-      const matchesStatus = filterStatus === "" || (car.status?.toLowerCase() === filterStatus.toLowerCase())
-      const matchesColor = filterColor === "" || (car.color?.toLowerCase().includes(filterColor.toLowerCase()))
+      const matchesSearch = searchQuery === "" || car.customerName.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesBrand = filterBrand === "" || (car.Brand?.toLowerCase() === filterBrand.toLowerCase());
+      const matchesStatus = filterStatus === "" || (car.status?.toLowerCase() === filterStatus.toLowerCase());
+      const matchesColor = filterColor === "" || (car.color?.toLowerCase().includes(filterColor.toLowerCase()));
       const matchesPrice =
         priceRange === "" ||
         (priceRange === "low" && car.price < 1000000) ||
         (priceRange === "medium" && car.price >= 1000000 && car.price < 5000000) ||
-        (priceRange === "high" && car.price >= 5000000)
+        (priceRange === "high" && car.price >= 5000000);
 
-      return matchesSearch && matchesBrand && matchesStatus && matchesColor && matchesPrice
-    })
+      return matchesSearch && matchesBrand && matchesStatus && matchesColor && matchesPrice;
+    });
 
-    // Sort by customer name
-    filtered.sort((a, b) => a.customerName.localeCompare(b.customerName))
+    filtered.sort((a, b) => a.customerName.localeCompare(b.customerName));
+    return filtered;
+  }, [cars, searchQuery, filterBrand, filterStatus, filterColor, priceRange]);
 
-    return filtered
-  }, [cars, searchQuery, filterBrand, filterStatus, filterColor, priceRange])
-
-  // Modified: Open logout popup instead of direct logout
-  const handleLogoutClick = () => {
-    setLogoutPopup(true)
-  }
-
-  // Logout logic
   const handleLogout = () => {
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
-    sessionStorage.clear()
-    window.location.href = "/login"
-  }
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.clear();
+    window.location.href = "/login";
+  };
 
   const handleAddCar = async (carData: Omit<Car, "id">) => {
     try {
-      const response = await carsAPI.createCar(carData)
-      setCars([...cars, response.data])
-      setShowAddCar(false)
+      const response = await carsAPI.createCar(carData);
+      setCars([...cars, response.data]);
+      setShowAddCar(false);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to add car")
+      setError(err.response?.data?.message || "Failed to add car");
     }
-  }
+  };
 
-  // Fixed: Use response.data
   const handleEditCar = async (id: string, carData: Car) => {
     try {
-      const response = await carsAPI.updateCar(id, carData)
-      setCars(cars.map((car) => (car._id === id ? response.data : car)))
+      const response = await carsAPI.updateCar(id, carData);
+      setCars(cars.map((car) => (car._id === id ? response.data : car)));
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to update car")
+      setError(err.response?.data?.message || "Failed to update car");
     }
-  }
+  };
 
   const handleDeleteCar = async (id: string | null) => {
-    if (!id) return
+    if (!id) return;
     try {
-      await carsAPI.deleteCar(id)
-      setCars(cars.filter((car) => car._id !== id))
+      await carsAPI.deleteCar(id);
+      setCars(cars.filter((car) => car._id !== id));
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to delete car")
+      setError(err.response?.data?.message || "Failed to delete car");
     }
-  }
+  };
 
   const handleViewDetails = (car: Car) => {
-    setSelectedCar(car)
-    setIsViewModalOpen(true)
-  }
+    setSelectedCar(car);
+    setIsViewModalOpen(true);
+  };
 
   const handleEdit = (car: Car) => {
-    setSelectedCar(car)
-    setIsEditModalOpen(true)
-  }
+    setSelectedCar(car);
+    setIsEditModalOpen(true);
+  };
 
   const handleUpdateCar = async (updatedCar: Car) => {
     try {
-      await carsAPI.updateCar(updatedCar._id, updatedCar)
-      fetchCars()
-      setIsEditModalOpen(false)
+      await carsAPI.updateCar(updatedCar._id, updatedCar);
+      fetchCars();
+      setIsEditModalOpen(false);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to update car")
+      setError(err.response?.data?.message || "Failed to update car");
     }
-  }
+  };
 
-  // Delete handler moved out of JSX
   const handleDeletePopup = async () => {
-    await handleDeleteCar(deletePopup.id)
-    setDeletePopup({ show: false, id: null })
-  }
+    await handleDeleteCar(deletePopup.id);
+    setDeletePopup({ show: false, id: null });
+  };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
   if (error) {
-    return <div className="text-red-500 text-center p-4">{error}</div>
+    return <div className="text-red-500 text-center p-4">{error}</div>;
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-4 border-b border-gray-200 gap-4">
-            <h1 className="text-2xl font-bold">Inventory Management</h1>
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-                <Search className="w-5 h-5" />
-              </button>
-              <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-                <Bell className="w-5 h-5" />
-              </button>
-              <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-                <User className="w-5 h-5" />
-              </button>
-              {/* Modified: Open logout popup */}
-              <button
-                onClick={handleLogoutClick}
-                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5 text-gray-700" />
-              </button>
+    <div className="bg-white min-h-screen">
+      <Navbar
+          title="Inventory Management System"
+          tabs={[]} 
+          activeTab="" 
+          setActiveTab={() => {}} 
+        />
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Controls Row */}
+        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full md:w-auto">
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search by customer name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
+              />
             </div>
+            <button
+              className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded w-full sm:w-auto"
+              onClick={() => setShowAddCar(true)}
+            >
+              Add New Car
+            </button>
           </div>
-          {/* Controls Row */}
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full md:w-auto">
-              <div className="relative w-full sm:w-auto">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search by customer name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
-                />
-              </div>
-              <button
-                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded w-full sm:w-auto"
-                onClick={() => setShowAddCar(true)}
-              >
-                Add New Car
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <button
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50 outline-none"
-                disabled
-                title="Sorting is always by name"
-              >
-                Sort by Name
-              </button>
-              <select
-                value={filterBrand}
-                onChange={(e) => setFilterBrand(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Brands</option>
-                <option value="BMW">BMW</option>
-                <option value="Mercedes">Mercedes</option>
-                <option value="Audi">Audi</option>
-                <option value="Toyota">Toyota</option>
-                <option value="Honda">Honda</option>
-                <option value="Ford">Ford</option>
-              </select>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Status</option>
-                <option value="available">Available</option>
-                <option value="sold">Sold</option>
-              </select>
-              <select
-                value={filterColor}
-                onChange={(e) => setFilterColor(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Colors</option>
-                <option value="black">Black</option>
-                <option value="white">White</option>
-                <option value="silver">Silver</option>
-                <option value="red">Red</option>
-                <option value="blue">Blue</option>
-                <option value="gray">Gray</option>
-              </select>
-              <select
-                value={priceRange}
-                onChange={(e) => setPriceRange(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Prices</option>
-                <option value="low">Under ₹10L</option>
-                <option value="medium">₹10L - ₹50L</option>
-                <option value="high">Over ₹50L</option>
-              </select>
-            </div>
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            <button
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:bg-gray-50 outline-none"
+              disabled
+              title="Sorting is always by name"
+            >
+              Sort by Name
+            </button>
+            <select
+              value={filterBrand}
+              onChange={(e) => setFilterBrand(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Brands</option>
+              <option value="BMW">BMW</option>
+              <option value="Mercedes">Mercedes</option>
+              <option value="Audi">Audi</option>
+              <option value="Toyota">Toyota</option>
+              <option value="Honda">Honda</option>
+              <option value="Ford">Ford</option>
+            </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Status</option>
+              <option value="available">Available</option>
+              <option value="sold">Sold</option>
+            </select>
+            <select
+              value={filterColor}
+              onChange={(e) => setFilterColor(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Colors</option>
+              <option value="black">Black</option>
+              <option value="white">White</option>
+              <option value="silver">Silver</option>
+              <option value="red">Red</option>
+              <option value="blue">Blue</option>
+              <option value="gray">Gray</option>
+            </select>
+            <select
+              value={priceRange}
+              onChange={(e) => setPriceRange(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Prices</option>
+              <option value="low">Under ₹10L</option>
+              <option value="medium">₹10L - ₹50L</option>
+              <option value="high">Over ₹50L</option>
+            </select>
           </div>
-          <div className="mt-4 text-sm text-gray-600">
-            Showing {filteredAndSortedCars.length} of {cars.length} cars
-            {searchQuery && <span className="ml-2">for "{searchQuery}"</span>}
-          </div>
+        </div>
+        <div className="mt-4 text-sm text-gray-600">
+          Showing {filteredAndSortedCars.length} of {cars.length} cars
+          {searchQuery && <span className="ml-2">for "{searchQuery}"</span>}
         </div>
         {/* Modals */}
         {showAddCar && (
@@ -269,7 +239,7 @@ const InventoryPage: React.FC = () => {
           <ViewCarModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} car={selectedCar} />
         )}
         {/* Table */}
-        <div className="bg-white shadow overflow-x-auto sm:rounded-lg">
+        <div className="bg-white shadow overflow-x-auto sm:rounded-lg mt-6">
           <table className="min-w-[700px] sm:min-w-full divide-y divide-gray-200">
             <thead>
               <tr className="bg-gray-50">
@@ -304,7 +274,7 @@ const InventoryPage: React.FC = () => {
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.model}</td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.year}</td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ₹{car.price.toLocaleString("en-IN")}
+                      ₹{car.price ? car.price.toLocaleString("en-IN") : "N/A"}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{car.condition || "Good"}</td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
@@ -313,8 +283,8 @@ const InventoryPage: React.FC = () => {
                           car.status === "available"
                             ? "bg-green-100 text-green-800"
                             : car.status === "sold"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-yellow-100 text-yellow-800"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {car.status}
@@ -396,7 +366,7 @@ const InventoryPage: React.FC = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default InventoryPage
+export default InventoryPage;

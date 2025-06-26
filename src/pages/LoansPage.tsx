@@ -7,6 +7,8 @@ import PaymentTracking from "./PaymentTracking"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import { loanCasesAPI, type LoanCase } from "../services/api"
+import {phoneRegex , emailRegex ,isPhoneNumber} from '../utiles/regex'
+import LoanManagement from "./LoanManagement"
 
 function Modal({
   show,
@@ -30,18 +32,35 @@ function Modal({
   )
 }
 
-const SOURCE_OPTIONS = ["Dealer", "Online Application", "Referral", "Direct", "Retailer"]
-const STATUS_OPTIONS = [
-  "New",
-  "Pending Approval",
-  "Approved",
-  "Rejected",
-  "Disbursed",
-  "Cancelled",
-  "Documents Pending",
-  "Inactive",
-]
-const CASE_TYPE_OPTIONS = ["New Car Loan", "Used Car Loan", "Loan Against Car", "Loan Transfer", "Used car"]
+enum SourceOption {
+  Dealer = "Dealer",
+  OnlineApplication = "Online Application",
+  Referral = "Referral",
+  Direct = "Direct",
+  Retailer = "Retailer",
+}
+const SOURCE_OPTIONS = Object.values(SourceOption)
+enum StatusOption {
+  New = "New",
+  PendingApproval = "Pending Approval",
+  Approved = "Approved",
+  Rejected = "Rejected",
+  Disbursed = "Disbursed",
+  Cancelled = "Cancelled",  
+  DocumentsPending = "Documents Pending",
+  Inactive = "Inactive",
+}
+
+const STATUS_OPTIONS = Object.values(StatusOption)
+enum CaseTypeOption {
+  NewCarLoan = "New Car Loan",
+  UsedCarLoan = "Used Car Loan",
+  LoanAgainstCar = "Loan Against Car",
+  LoanTransfer = "Loan Transfer",
+  UsedCar = "Used car",
+}
+
+const CASE_TYPE_OPTIONS = Object.values(CaseTypeOption)
 const PAGE_SIZE = 10
 
 const LoanCaseTab = () => {
@@ -64,8 +83,6 @@ const LoanCaseTab = () => {
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
-  const [showViewModal, setShowViewModal] = useState(false)
-  const [viewCase, setViewCase] = useState<LoanCase | null>(null)
   const [editCase, setEditCase] = useState<LoanCase | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
@@ -89,12 +106,10 @@ const LoanCaseTab = () => {
 
   // Validation functions
   const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^\d{10}$/
     return phoneRegex.test(phone)
   }
 
   const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
   }
 
@@ -154,8 +169,8 @@ const LoanCaseTab = () => {
 
       // Handle name/phone search in the same field
       if (filters.name) {
-        // Check if the input is a phone number (only digits)
-        const isPhoneNumber = /^\d+$/.test(filters.name.trim())
+        // Check if the input is a phone number (only digits)    
+        isPhoneNumber.test(filters.name.trim())
         if (isPhoneNumber) {
           params.phone = filters.name
         } else {
@@ -192,7 +207,6 @@ const LoanCaseTab = () => {
 
   useEffect(() => {
     fetchLoanCases()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, page])
 
   // Handlers for filters
@@ -291,14 +305,18 @@ const LoanCaseTab = () => {
     }
   }
 
+  // Handle View Case 
+  const navigate = useNavigate();
+  const handleView = (loanCase: LoanCase) => {
+    navigate(`/dashboard/loans/management`, { state: { loanCase } });
+  };
+
   // Delete loan case
   const handleDeleteCase = async () => {
     if (!deleteTargetId) return
     try {
       await loanCasesAPI.deleteLoanCase(deleteTargetId)
       setShowDeleteModal(false)
-      setShowViewModal(false)
-      setViewCase(null)
       setDeleteTargetId(null)
       setError(null)
       fetchLoanCases()
@@ -507,11 +525,8 @@ const LoanCaseTab = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col gap-2">
                         <button
+                          onClick={() => handleView(loanCase)}
                           className="bg-white border border-gray-300 rounded px-3 py-1 text-xs text-gray-700 hover:bg-gray-50"
-                          onClick={() => {
-                            setViewCase(loanCase)
-                            setShowViewModal(true)
-                          }}
                         >
                           View
                         </button>
@@ -704,7 +719,7 @@ const LoanCaseTab = () => {
                 }
                 required
               >
-                <option value="">Select Vehicle Type</option>
+                
                 {CASE_TYPE_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
@@ -770,7 +785,6 @@ const LoanCaseTab = () => {
                 }
                 required
               >
-                <option value="">Select Source</option>
                 {SOURCE_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
@@ -820,7 +834,6 @@ const LoanCaseTab = () => {
                 }
                 required
               >
-                <option value="">Select Status</option>
                 {STATUS_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
@@ -997,7 +1010,6 @@ const LoanCaseTab = () => {
                   }
                   required
                 >
-                  <option value="">Select Vehicle Type</option>
                   {CASE_TYPE_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
                       {opt}
@@ -1075,7 +1087,6 @@ const LoanCaseTab = () => {
                   }
                   required
                 >
-                  <option value="">Select Source</option>
                   {SOURCE_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
                       {opt}
@@ -1134,7 +1145,6 @@ const LoanCaseTab = () => {
                   }
                   required
                 >
-                  <option value="">Select Status</option>
                   {STATUS_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
                       {opt}
@@ -1166,97 +1176,6 @@ const LoanCaseTab = () => {
                 onClick={handleEditLoanCase}
               >
                 Update Loan Case
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* View Modal */}
-      <Modal show={showViewModal} onClose={() => setShowViewModal(false)} title="Loan Case Details">
-        {viewCase && (
-          <div className="overflow-y-auto max-h-[70vh]">
-            <div className="text-lg font-semibold mb-4">Client & Vehicle Details</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Client Name</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.clientInfo.name}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Phone</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.clientInfo.phone}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.clientInfo.email}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Address</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.clientInfo.address}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Date</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{formatDate(viewCase.clientInfo.date)}</div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Brand</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.vehicleInfo.brand}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Model</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.vehicleInfo.model}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Year</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.vehicleInfo.year}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Type</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.vehicleInfo.type}</div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Bank</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.loanDetails.bank}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Interest Rate</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.loanDetails.interestRate}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Tenure</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.loanDetails.tenure}</div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Source</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.caseDetails.source}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Showroom</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.caseDetails.showroom}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Assigned To</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.caseDetails.assignedTo}</div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{viewCase.caseUpdate.status}</div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Added On</label>
-                <div className="border px-3 py-2 rounded bg-gray-50">{formatDate(viewCase.caseUpdate.addedOn)}</div>
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                className="bg-gray-200 px-5 py-2 rounded hover:bg-gray-300"
-                onClick={() => setShowViewModal(false)}
-              >
-                Close
               </button>
             </div>
           </div>
@@ -1324,6 +1243,7 @@ const LoanCasePage = () => {
       <Routes>
         <Route index element={<LoanCaseTab />} />
         <Route path="approval" element={<LoanApproval />} />
+        <Route path="management" element={<LoanManagement></LoanManagement>} />
         <Route path="tracking" element={<PaymentTracking />} />
       </Routes>
     </div>

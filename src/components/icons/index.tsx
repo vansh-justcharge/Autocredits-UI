@@ -238,6 +238,8 @@ export const SidebarIcons = {
     Inventory: InventoryIcon,
     Loans: LoansIcon,
     Insurance: InsuranceIcon,
+    User: UserIcon,
+    Sales: CreditCardIcon,
     Reports: ReportsIcon,
     Settings: SettingsIcon,
 };

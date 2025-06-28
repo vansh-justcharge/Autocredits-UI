@@ -7,6 +7,8 @@ import EditCarModal from "./EditCarModal";
 import ViewCarModal from "./ViewCarModal";
 import Navbar from "./Navbar";
 
+const ITEMS_PER_PAGE = 10;
+
 const InventoryPage: React.FC = () => {
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,9 @@ const InventoryPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterColor, setFilterColor] = useState("");
   const [priceRange, setPriceRange] = useState("");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch cars from the backend
   const fetchCars = async () => {
@@ -66,6 +71,23 @@ const InventoryPage: React.FC = () => {
     return filtered;
   }, [cars, searchQuery, filterBrand, filterStatus, filterColor, priceRange]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredAndSortedCars.length / ITEMS_PER_PAGE);
+  const paginatedCars = filteredAndSortedCars.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Reset to first page when filters/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterBrand, filterStatus, filterColor, priceRange]);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
+  // Modal and CRUD handlers (unchanged)
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -138,11 +160,11 @@ const InventoryPage: React.FC = () => {
   return (
     <div className="bg-white min-h-screen">
       <Navbar
-          title="Inventory Management System"
-          tabs={[]} 
-          activeTab="" 
-          setActiveTab={() => {}} 
-        />
+        title="Inventory Management System"
+        tabs={[]} 
+        activeTab="" 
+        setActiveTab={() => {}} 
+      />
       <div className="max-w-7xl mx-auto p-6">
         {/* Controls Row */}
         <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
@@ -255,7 +277,7 @@ const InventoryPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAndSortedCars.length === 0 ? (
+              {paginatedCars.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                     {searchQuery || filterBrand || filterStatus || filterColor || priceRange
@@ -264,7 +286,7 @@ const InventoryPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredAndSortedCars.map((car) => (
+                paginatedCars.map((car) => (
                   <tr key={car._id} className="hover:bg-gray-50">
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {car.customerName}
@@ -317,6 +339,47 @@ const InventoryPage: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between px-1 py-2 mt-4">
+          <div className="text-sm text-gray-600">
+            Showing {filteredAndSortedCars.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1}
+            {" "}
+            to {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedCars.length)} of {filteredAndSortedCars.length} entries
+          </div>
+          <div className="flex gap-2">
+            <button
+              className="px-2 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+            >
+              First
+            </button>
+            <button
+              className="px-2 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            <span className="px-2 py-2 text-gray-700 text-sm">
+              {currentPage} / {totalPages || 1}
+            </span>
+            <button
+              className="px-2 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              Next
+            </button>
+            <button
+              className="px-2 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              Last
+            </button>
+          </div>
         </div>
       </div>
       {/* Delete Confirmation Popup */}

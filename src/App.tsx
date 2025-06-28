@@ -14,7 +14,7 @@ import InsurancePage from './pages/InsurancePage';
 import InsuranceModel from './pages/InsuranceModel'; 
 import InsuranceCase from './pages/Insurance_case';
 import UserManagementPage from './pages/UserManagementPage';
-// import SalesPage from './pages/SalesPage';
+import SalesPage from './pages/SalesPage';
 // import Profile from './pages/Profile';
 
 const App: React.FC = () => {
@@ -88,7 +88,7 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/dashboard/insurance-case"
+            path="/dashboard/insurance-case/*"
             element={
               <ProtectedRoute>
                 <DashboardLayout>
@@ -107,17 +107,17 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
-          {/* <Route
+          <Route
             path="/dashboard/sales"
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <SalesPage />
+                  <SalesPage></SalesPage>
                 </DashboardLayout>
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/dashboard/profile"
             element={
               <ProtectedRoute>

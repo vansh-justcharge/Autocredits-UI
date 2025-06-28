@@ -9,8 +9,8 @@ const menuItems = [
   { name: 'Inventory', icon: SidebarIcons.Inventory, path: '/dashboard/inventory' },
   { name: 'Loans', icon: SidebarIcons.Loans, path: '/dashboard/loans' },
   { name: 'Insurance', icon: SidebarIcons.Insurance, path: '/dashboard/insurance' },
-  // { name: 'Sales / Finance', icon: SidebarIcons.Sales, path: '/dashboard/sales' },
-  { name: 'User Management', icon: SidebarIcons.Dashboard, path: '/dashboard/user-management' },
+  { name: 'User Management', icon: SidebarIcons.User, path: '/dashboard/user-management' },
+  { name: 'Sales / Finance', icon: SidebarIcons.Reports, path: '/dashboard/sales' },
   // { name: 'Reports', icon: SidebarIcons.Reports, path: '/dashboard/reports' },
   // { name: 'System Logs', icon: SidebarIcons.SystemLogs, path: '/dashboard/logs' },
 ];

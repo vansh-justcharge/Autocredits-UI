@@ -7,7 +7,7 @@ import NomineeReferenceDetails from "../components/Insurance/NomineeDetails";
 import VehicleDetails from "../components/Insurance/VehicleDetails";
 import PreviousPolicyDetails from "../components/Insurance/PreviousPolicy";
 import NewPolicyDetails from "../components/Insurance/NewPolicy";
-import PaymentDetails from "../components/Insurance/Document"; // <-- Add this
+import PaymentDetails from "../components/Insurance/Document"; 
 
 const tabs = [
   "Case-Details",

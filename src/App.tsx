@@ -15,6 +15,7 @@ import InsuranceModel from './pages/InsuranceModel';
 import InsuranceCase from './pages/Insurance_case';
 import UserManagementPage from './pages/UserManagementPage';
 import SalesPage from './pages/SalesPage';
+import PaymentTrack from './pages/PaymentTrack';
 // import Profile from './pages/Profile';
 
 const App: React.FC = () => {
@@ -108,11 +109,21 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/dashboard/sales"
+            path="/dashboard/sales/*"
             element={
               <ProtectedRoute>
                 <DashboardLayout>
                   <SalesPage></SalesPage>
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/payment/*"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <PaymentTrack></PaymentTrack>
                 </DashboardLayout>
               </ProtectedRoute>
             }

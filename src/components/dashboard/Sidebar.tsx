@@ -10,23 +10,27 @@ const menuItems = [
   { name: 'Loans', icon: SidebarIcons.Loans, path: '/dashboard/loans' },
   { name: 'Insurance', icon: SidebarIcons.Insurance, path: '/dashboard/insurance' },
   { name: 'User Management', icon: SidebarIcons.User, path: '/dashboard/user-management' },
-  { name: 'Sales / Finance', icon: SidebarIcons.Reports, path: '/dashboard/sales' },
-  // { name: 'Reports', icon: SidebarIcons.Reports, path: '/dashboard/reports' },
-  // { name: 'System Logs', icon: SidebarIcons.SystemLogs, path: '/dashboard/logs' },
+  // Sales / Finance handled separately for dropdown
+];
+
+const salesDropdownItems = [
+  { name: 'Sales Transaction', path: '/dashboard/sales' },
+  { name: 'Payment Tracking,',path: '/dashboard/payment' },
+  { name: 'Reports' },
 ];
 
 const Sidebar = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isSalesOpen, setIsSalesOpen] = useState(false);
 
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
+  const toggleMobileMenu = () => setIsMobileOpen(!isMobileOpen);
+  const toggleSalesDropdown = () => setIsSalesOpen((prev) => !prev);
 
-  const toggleMobileMenu = () => {
-    setIsMobileOpen(!isMobileOpen);
-  };
+  // Helper to determine if any sales dropdown item is active
+  const isSalesActive = location.pathname.startsWith('/dashboard/sales');
 
   return (
     <>
@@ -67,7 +71,7 @@ const Sidebar = () => {
           >
             {!isCollapsed && (
               <span className=" font-bold">
-                <img src={logo}></img>
+                <img src={logo} alt="Logo" />
               </span>
             )}
           </div>
@@ -98,10 +102,10 @@ const Sidebar = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                onClick={() => setIsMobileOpen(false)} // Close mobile menu on link click
+                onClick={() => setIsMobileOpen(false)}
                 className={`flex items-center px-4 py-3 rounded-md transition-colors duration-200
                   ${isActive ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'}`}
-                title={isCollapsed ? item.name : ''} // Tooltip for collapsed state
+                title={isCollapsed ? item.name : ''}
               >
                 <IconComponent />
                 <span
@@ -112,6 +116,66 @@ const Sidebar = () => {
               </Link>
             );
           })}
+
+          {/* Sales / Finance Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={toggleSalesDropdown}
+              className={`flex items-center w-full px-4 py-3 rounded-md transition-colors duration-200
+                ${isSalesActive ? 'bg-gray-200 text-gray-900' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'}`}
+              title={isCollapsed ? 'Sales / Finance' : ''}
+            >
+              <SidebarIcons.Reports />
+              <span className={`transition-opacity duration-200 ml-2 ${isCollapsed ? 'hidden' : 'block'}`}>
+                Sales / Finance
+              </span>
+              <svg
+                className={`ml-auto transition-transform duration-200 ${isSalesOpen ? 'rotate-180' : ''} ${isCollapsed ? 'hidden' : 'block'}`}
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                viewBox="0 0 24 24"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            {/* Dropdown menu */}
+            {isSalesOpen && !isCollapsed && (
+              <div className="ml-4 mt-1 flex flex-col gap-2">
+                {salesDropdownItems.map((subItem, idx) =>
+                  subItem.path ? (
+                    <Link
+                      key={subItem.name}
+                      to={subItem.path}
+                      onClick={() => {
+                        setIsSalesOpen(false);
+                        setIsMobileOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 rounded-md bg-white text-gray-700 hover:bg-gray-200 border border-gray-200
+                        ${location.pathname === subItem.path ? 'bg-gray-200 text-gray-900' : ''}`}
+                    >
+                      {subItem.name}
+                    </Link>
+                  ) : (
+                    <button
+                      key={subItem.name}
+                      type="button"
+                      className="w-full text-left px-4 py-2 rounded-md bg-white text-gray-400 border border-gray-200 cursor-not-allowed"
+                      tabIndex={-1}
+                      disabled
+                    >
+                      {subItem.name}
+                    </button>
+                  )
+                )}
+              </div>
+            )}
+          </div>
         </nav>
       </div>
 

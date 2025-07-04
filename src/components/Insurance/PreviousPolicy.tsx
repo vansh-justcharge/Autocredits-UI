@@ -11,12 +11,12 @@ const PreviousPolicyDetails = () => {
     ncbDiscount: "",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Handle form submission logic here
     alert("Submitted!\n" + JSON.stringify(form, null, 2));
@@ -97,18 +97,24 @@ const PreviousPolicyDetails = () => {
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             />
           </div>
-          {/* NCB Discount */}
           <div>
-            <label className="block text-sm font-semibold mb-1">NCB Discount</label>
-            <input
-              type="text"
-              name="ncbDiscount"
-              value={form.ncbDiscount}
-              onChange={handleChange}
-              className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-              placeholder="Enter NCB discount"
-            />
+            <label className="block text-sm font-semibold mb-1">NCB Discount (%)</label>
+            <div className="relative">
+              <select
+                name="ncbDiscount"
+                value={form.ncbDiscount}
+                onChange={handleChange}
+                className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700 pr-10"
+              >
+                <option value="0">0%</option>
+                <option value="20">20%</option>
+                <option value="25">25%</option>
+                <option value="35">35%</option>
+                <option value="50">50%</option>
+              </select>
+            </div>
           </div>
+
         </div>
         <div className="mt-8 flex justify-end">
           <button

@@ -252,15 +252,24 @@ const PaymentTrack = () => {
                           <td className="py-4 text-gray-800">{p.status}</td>
                           <td className="py-4">
                             <div className="flex items-center justify-center gap-3">
-                              <ActionButton variant="view" onClick={() => setViewRow(p)}>
-                                View
-                              </ActionButton>
-                              <ActionButton variant="edit" onClick={() => setEditRowIdx(globalIdx)}>
-                                Edit
-                              </ActionButton>
-                              <ActionButton variant="delete" onClick={() => setDeleteRowIdx(globalIdx)}>
-                                Delete
-                              </ActionButton>
+                              <button
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors"
+                          onClick={() => setViewRow(p)}
+                        >
+                          View
+                        </button>
+                        <button
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs transition-colors"
+                          onClick={() => setEditRowIdx(globalIdx)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
+                          onClick={() => setDeleteRowIdx(globalIdx)}
+                        >
+                          Delete
+                        </button>
                             </div>
                           </td>
                         </tr>

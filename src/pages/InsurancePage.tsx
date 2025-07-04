@@ -281,7 +281,7 @@ const InsurancePage = () => {
           </div>
           <button onClick={() => navigate("/dashboard/insurance-case")}
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-            Add New Car
+            Add New Insurance
           </button>
         </div>
         {/* Table */}

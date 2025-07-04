@@ -16,6 +16,7 @@ import InsuranceCase from './pages/Insurance_case';
 import UserManagementPage from './pages/UserManagementPage';
 import SalesPage from './pages/SalesPage';
 import PaymentTrack from './pages/PaymentTrack';
+import LoanCase from './pages/LoanCase';
 // import Profile from './pages/Profile';
 
 const App: React.FC = () => {
@@ -63,6 +64,16 @@ const App: React.FC = () => {
               <ProtectedRoute>
                 <DashboardLayout>
                   <LoansPage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/loan-case/*"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <LoanCase></LoanCase>
                 </DashboardLayout>
               </ProtectedRoute>
             }

@@ -43,23 +43,6 @@ function Modal({ open, onClose, title, children }) {
   );
 }
 
-// Action Button Component with fixed alignment and style
-function ActionButton({ variant = "secondary", children, ...props }) {
-  const base =
-    "inline-flex items-center justify-center font-bold px-2 py-2 rounded-md text-white transition focus:outline-none focus:ring-2 focus:ring-offset-2 text-xs";
-  const variants = {
-    view: "bg-blue-500 hover:bg-blue-600 focus:ring-blue-300",
-    edit: "bg-green-500 hover:bg-green-600 focus:ring-green-300",
-    delete: "bg-red-500 hover:bg-red-600 focus:ring-red-300",
-    secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-300",
-  };
-  return (
-    <button className={`${base} ${variants[variant]}`} {...props}>
-      {children}
-    </button>
-  );
-}
-
 // Edit Form Component
 function EditForm({ transaction, onSave, onCancel }) {
   const [form, setForm] = useState({ ...transaction });
@@ -214,24 +197,24 @@ function SalesTab({ type, transactions, setTransactions }) {
                     <td className="py-4 text-gray-800">{transaction.amount}</td>
                     <td className="py-4">
                       <div className="flex items-center justify-center gap-3">
-                        <ActionButton
-                          variant="view"
+                        <button
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors"
                           onClick={() => setViewRow(transaction)}
                         >
                           View
-                        </ActionButton>
-                        <ActionButton
-                          variant="edit"
-                          onClick={() => setEditRowIdx(globalIdx)}
+                        </button>
+                        <button
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs transition-colors"
+                          onClick={() => setViewRow(transaction)}
                         >
                           Edit
-                        </ActionButton>
-                        <ActionButton
-                          variant="delete"
+                        </button>
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
                           onClick={() => handleDelete(globalIdx)}
                         >
                           Delete
-                        </ActionButton>
+                        </button>
                       </div>
                     </td>
                   </tr>

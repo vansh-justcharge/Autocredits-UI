@@ -9,6 +9,7 @@ const PreviousPolicyDetails = () => {
     issueDate: "",
     dueDate: "",
     ncbDiscount: "",
+    claimLastYear:""
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -37,6 +38,7 @@ const PreviousPolicyDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter insurance company"
+              required
             />
           </div>
           {/* Branch */}
@@ -49,6 +51,7 @@ const PreviousPolicyDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter branch"
+              required
             />
           </div>
           {/* Policy Type */}
@@ -61,6 +64,7 @@ const PreviousPolicyDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter policy type"
+              required
             />
           </div>
           {/* Policy Number */}
@@ -73,6 +77,7 @@ const PreviousPolicyDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter policy number"
+              required
             />
           </div>
           {/* Issue Date */}
@@ -83,6 +88,7 @@ const PreviousPolicyDetails = () => {
               name="issueDate"
               value={form.issueDate}
               onChange={handleChange}
+              required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             />
           </div>
@@ -94,6 +100,7 @@ const PreviousPolicyDetails = () => {
               name="dueDate"
               value={form.dueDate}
               onChange={handleChange}
+              required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             />
           </div>
@@ -113,6 +120,20 @@ const PreviousPolicyDetails = () => {
                 <option value="50">50%</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-1">Claim Taken Last Year</label>
+            <input 
+            type="number"
+            name="claimLastYear"
+            onChange={handleChange}
+            value={form.claimLastYear}
+            required
+            className="bg-gray-100 border border-gray-200 px-3 py-2 w-full rounded text-gray-700"
+            placeholder="Enter Your Ammount"
+            >
+            </input>
           </div>
 
         </div>

@@ -1,7 +1,21 @@
-import React, { useState } from 'react';
-import { Car, ShieldCheck, BadgePercent, Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Car, ShieldCheck, BadgePercent, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-// Modal component for Add, Edit, and View
+const FEATURES_LIST = [
+  'Cashless Garage',
+  '24x7 Roadside Assistance',
+  'Zero Depreciation',
+  'Quick Claim Settlement',
+  'Personal Accident Cover',
+  'Engine Protect',
+  'No Claim Bonus Saver',
+  'Key Replacement',
+];
+
+const API_BASE = import.meta.env.VITE_BACKEND_API_BASE
+
 type ModalProps = {
   open: boolean;
   onClose: () => void;
@@ -12,7 +26,7 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, children }) => {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[500px] max-w-full relative">
+      <div className="bg-white rounded-lg shadow-lg p-6 min-w-[500px] max-w-full relative max-h-[90vh] overflow-y-auto">
         <button
           className="absolute top-2 right-2 text-gray-400"
           onClick={onClose}
@@ -28,10 +42,13 @@ const Modal: React.FC<ModalProps> = ({ open, onClose, children }) => {
 type Quote = {
   id: number;
   insurer: string;
-  premium: number;
+  premium: string;
   coverage: string;
-  ncb: number;
+  ncb: string;
   features: string[];
+  quoteInsuranceDuration: string;
+  quoteIDV: string;
+  quoteTotalPremium: string;
 };
 
 type ModalState =
@@ -41,56 +58,60 @@ type ModalState =
   | { type: 'delete'; quote: Quote }
   | { type: null; quote: null };
 
-const initialQuotes: Quote[] = [
-  {
-    id: 1,
-    insurer: 'SafeDrive Insurance',
-    premium: 7500,
-    coverage: 'Comprehensive',
-    ncb: 25,
-    features: ['Cashless Garage', '24x7 Roadside Assistance', 'Zero Depreciation'],
-  },
-  {
-    id: 2,
-    insurer: 'SecureWheels',
-    premium: 6900,
-    coverage: 'Third Party',
-    ncb: 20,
-    features: ['Quick Claim Settlement', 'Personal Accident Cover'],
-  },
-  {
-    id: 3,
-    insurer: 'AutoCare Protect',
-    premium: 8200,
-    coverage: 'Comprehensive',
-    ncb: 35,
-    features: ['Engine Protect', 'No Claim Bonus Saver', 'Key Replacement'],
-  },
-];
-
 const Quotes = () => {
-  const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [modal, setModal] = useState<ModalState>({ type: null, quote: null });
   const [form, setForm] = useState({
     insurer: '',
     premium: '',
     coverage: '',
     ncb: '',
-    features: '',
+    quoteInsuranceDuration: '',
+    quoteIDV: '',
+    quoteTotalPremium: '',
+    features: [] as string[],
   });
+
+  const navigate = useNavigate();
+
+  // Fetch quotes from API on mount
+  const fetchQuotes = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/get`);
+      setQuotes(res.data);
+    } catch (err) {
+      console.error('Error fetching quotes', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchQuotes();
+  }, []);
 
   // Open modal helpers
   const openAdd = () => {
-    setForm({ insurer: '', premium: '', coverage: '', ncb: '', features: '' });
+    setForm({
+      insurer: '',
+      premium: '',
+      coverage: '',
+      ncb: '',
+      quoteInsuranceDuration: '',
+      quoteIDV: '',
+      quoteTotalPremium: '',
+      features: [],
+    });
     setModal({ type: 'add', quote: null });
   };
   const openEdit = (quote: Quote) => {
     setForm({
       insurer: quote.insurer,
-      premium: quote.premium.toString(),
+      premium: quote.premium,
       coverage: quote.coverage,
-      ncb: quote.ncb.toString(),
-      features: quote.features.join(', '),
+      ncb: quote.ncb,
+      quoteInsuranceDuration: quote.quoteInsuranceDuration,
+      quoteIDV: quote.quoteIDV,
+      quoteTotalPremium: quote.quoteTotalPremium,
+      features: [...quote.features],
     });
     setModal({ type: 'edit', quote });
   };
@@ -105,46 +126,120 @@ const Quotes = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Add quote
-  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const newQuote = {
-      id: Date.now(),
-      insurer: form.insurer,
-      premium: Number(form.premium),
-      coverage: form.coverage,
-      ncb: Number(form.ncb),
-      features: form.features.split(',').map(f => f.trim()).filter(Boolean),
-    };
-    setQuotes([newQuote, ...quotes]);
-    closeModal();
+  // Handle feature checkbox changes
+  const handleFeatureChange = (feature: string) => {
+    setForm((prev) => ({
+      ...prev,
+      features: prev.features.includes(feature)
+        ? prev.features.filter((f) => f !== feature)
+        : [...prev.features, feature],
+    }));
   };
 
-  // Edit quote
-  const handleEdit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Validate form fields (all as strings, just check not empty)
+  const validateForm = () => {
+    return (
+      form.insurer.trim() &&
+      form.premium.trim() &&
+      form.coverage.trim() &&
+      form.ncb.trim() &&
+      form.quoteInsuranceDuration.trim() &&
+      form.quoteIDV.trim() &&
+      form.quoteTotalPremium.trim()
+    );
+  };
+
+  // Add quote (POST) - send all as string
+  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      alert('Please fill all fields correctly.');
+      return;
+    }
+    const newQuote = {
+      insurer: form.insurer.trim(),
+      premium: form.premium.trim(),
+      coverage: form.coverage.trim(),
+      ncb: form.ncb.trim(),
+      features: form.features,
+      quoteInsuranceDuration: form.quoteInsuranceDuration.trim(),
+      quoteIDV: form.quoteIDV.trim(),
+      quoteTotalPremium: form.quoteTotalPremium.trim(),
+    };
+    try {
+      const res = await axios.post(`${API_BASE}/create`, newQuote);
+      if (res.data && res.status !== 204) {
+        setQuotes([res.data, ...quotes]);
+      } else {
+        await fetchQuotes();
+      }
+      closeModal();
+    } catch (err) {
+      console.error('Error adding quote', err);
+      alert('Failed to add quote');
+    }
+  };
+
+  // Edit quote (PUT) - send all as string
+  const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!modal.quote) return;
-    setQuotes(quotes.map(q =>
-      q.id === modal.quote!.id
-        ? {
-            ...q,
-            insurer: form.insurer,
-            premium: Number(form.premium),
-            coverage: form.coverage,
-            ncb: Number(form.ncb),
-            features: form.features.split(',').map(f => f.trim()).filter(Boolean),
-          }
-        : q
-    ));
+    if (!validateForm()) {
+      alert('Please fill all fields correctly.');
+      return;
+    }
+    const updatedQuote = {
+      insurer: form.insurer.trim(),
+      premium: form.premium.trim(),
+      coverage: form.coverage.trim(),
+      ncb: form.ncb.trim(),
+      features: form.features,
+      quoteInsuranceDuration: form.quoteInsuranceDuration.trim(),
+      quoteIDV: form.quoteIDV.trim(),
+      quoteTotalPremium: form.quoteTotalPremium.trim(),
+    };
+    try {
+      const res = await axios.put(`${API_BASE}/update/${modal.quote.id}`, updatedQuote);
+      if (res.data && res.status !== 204) {
+        setQuotes(
+          quotes.map((q) =>
+            q.id === modal.quote!.id ? res.data : q
+          )
+        );
+      } else {
+        await fetchQuotes();
+      }
+      closeModal();
+    } catch (err) {
+      console.error('Error editing quote', err);
+      alert('Failed to edit quote');
+    }
+  };
+
+  // Delete quote (DELETE)
+  const handleDelete = async () => {
+    if (modal.quote) {
+      try {
+        await axios.delete(`${API_BASE}/delete/${modal.quote.id}`);
+        setQuotes(quotes.filter((q) => q.id !== modal.quote?.id));
+      } catch (err) {
+        console.error('Error deleting quote', err);
+        alert('Failed to delete quote');
+      }
+    }
     closeModal();
   };
 
-  // Delete quote
-  const handleDelete = () => {
-    if (modal.quote) {
-      setQuotes(quotes.filter(q => q.id !== modal.quote?.id));
-    }
-    closeModal();
+  // Handle Buy Now
+  const handleBuyNow = (quote: Quote) => {
+    navigate('/dashboard/insurance-case/New-Policy-Details', {
+      state: {
+        newNcbDiscount: quote.ncb,
+        newInsuranceDuration: quote.quoteInsuranceDuration,
+        idv: quote.quoteIDV,
+        NewTotalPremium: quote.quoteTotalPremium,
+      },
+    });
   };
 
   return (
@@ -161,11 +256,11 @@ const Quotes = () => {
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {quotes.map((quote) => (
           <div
             key={quote.id}
-            className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border border-gray-100 hover:shadow-lg transition"
+            className="flex flex-col justify-between bg-white rounded-xl shadow py-5 px-6 border border-gray-100 hover:shadow-lg transition"
           >
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -175,9 +270,18 @@ const Quotes = () => {
               <div className="text-gray-600 mb-1">
                 <span className="font-medium">Coverage:</span> {quote.coverage}
               </div>
-              <div className="text-gray-600 mb-1">
+              <div className="text-gray-600 mb-1 flex items-center">
                 <BadgePercent className="inline w-4 h-4 mr-1 text-blue-500" />
-                <span className="font-medium">NCB:</span> {quote.ncb}%
+                <span className="font-medium">NCB:</span> {quote.ncb}
+              </div>
+              <div className="text-gray-600 mb-1">
+                <span className="font-medium">Duration:</span> {quote.quoteInsuranceDuration}
+              </div>
+              <div className="text-gray-600 mb-1">
+                <span className="font-medium">IDV:</span> {quote.quoteIDV}
+              </div>
+              <div className="text-gray-600 mb-1">
+                <span className="font-medium">Total Premium:</span> {quote.quoteTotalPremium}
               </div>
               <ul className="text-sm text-gray-500 list-disc ml-6 mt-1">
                 {quote.features.map((f, idx) => (
@@ -185,32 +289,40 @@ const Quotes = () => {
                 ))}
               </ul>
             </div>
-            <div className="flex flex-col items-end gap-2">
-                <div className="flex gap-2 mb-2">
+            <div className="flex flex-col items-end gap-2 mt-4">
+              <div className="flex gap-2">
                 <button
                   className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors"
                   onClick={() => openView(quote)}
                   title="View"
-                > View
+                >
+                  View
                 </button>
                 <button
                   className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs transition-colors"
                   onClick={() => openEdit(quote)}
                   title="Edit"
-                > Edit
+                >
+                  Edit
                 </button>
                 <button
                   className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
                   onClick={() => openDelete(quote)}
                   title="Delete"
-                >Delete
+                >
+                  Delete
                 </button>
               </div>
-              <div className="text-2xl font-bold text-black mb-2">
-                ₹{quote.premium.toLocaleString()}
-                <span className="text-base font-normal text-gray-500 ml-1">/year</span>
+              <div className="text-2xl font-bold text-black">
+                ₹{quote.premium}
+                <span className="text-base font-normal text-gray-500 ml-1">
+                  /year
+                </span>
               </div>
-              <button className="bg-black text-white px-6 py-2 mt-4 font-semibold hover:bg-violet-700 transition">
+              <button
+                className="bg-black text-white px-6 py-2 font-semibold hover:bg-violet-700 transition mt-2"
+                onClick={() => handleBuyNow(quote)}
+              >
                 Buy Now
               </button>
             </div>
@@ -225,209 +337,329 @@ const Quotes = () => {
       </div>
 
       {/* Add Modal */}
-    <Modal open={modal.type === 'add'} onClose={closeModal}>
-      <h2 className="text-xl font-bold mb-4">Add Quote</h2>
-      <form onSubmit={handleAdd} className="space-y-3">
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="add-insurer">Insurer</label>
-        <input
-          id="add-insurer"
-          className="w-full border rounded px-3 py-2"
-          name="insurer"
-          placeholder="Insurer"
-          value={form.insurer}
-          onChange={handleChange}
-          required
-        />
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="add-premium">Premium</label>
-        <input
-          id="add-premium"
-          className="w-full border rounded px-3 py-2"
-          name="premium"
-          type="number"
-          placeholder="Premium"
-          value={form.premium}
-          onChange={handleChange}
-          required
-        />
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="add-coverage">Coverage</label>
-        <input
-          id="add-coverage"
-          className="w-full border rounded px-3 py-2"
-          name="coverage"
-          placeholder="Coverage"
-          value={form.coverage}
-          onChange={handleChange}
-          required
-        />
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="add-ncb">NCB</label>
-        <select
-          id="add-ncb"
-          className="w-full border rounded px-3 py-2"
-          name="ncb"
-          value={form.ncb}
-          onChange={handleChange}
-          required
-        >
-          <option value="0">0</option>
-          <option value="20">20</option>
-          <option value="25">25</option>
-          <option value="35">35</option>
-          <option value="50">50</option>
-        </select>
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="add-features">Features (comma separated)</label>
-        <input
-          id="add-features"
-          className="w-full border rounded px-3 py-2"
-          name="features"
-          placeholder="Features (comma separated)"
-          value={form.features}
-          onChange={handleChange}
-          required
-        />
-        </div>
-        <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          className="px-4 py-2 bg-gray-200 rounded"
-          onClick={closeModal}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-violet-600 text-white rounded font-semibold"
-        >
-          Add
-        </button>
-        </div>
-      </form>
-    </Modal>
+      <Modal open={modal.type === 'add'} onClose={closeModal}>
+        <h2 className="text-xl font-bold mb-4">Add Quote</h2>
+        <form onSubmit={handleAdd} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="add-insurer">
+              Insurer
+            </label>
+            <input
+              id="add-insurer"
+              className="w-full border rounded px-3 py-2"
+              name="insurer"
+              placeholder="Insurer"
+              value={form.insurer}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="add-premium">
+              Premium
+            </label>
+            <input
+              id="add-premium"
+              className="w-full border rounded px-3 py-2"
+              name="premium"
+              type="text"
+              placeholder="Premium"
+              value={form.premium}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="add-coverage">
+              Coverage
+            </label>
+            <input
+              id="add-coverage"
+              className="w-full border rounded px-3 py-2"
+              name="coverage"
+              placeholder="Coverage"
+              value={form.coverage}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+           <label className="block text-sm font-medium mb-1" htmlFor="add-ncb">
+              NCB
+            </label>
+            <select
+              id="add-ncb"
+              name="ncb"
+              className="w-full border rounded px-3 py-2"
+              value={form.ncb}
+              onChange={handleChange}
+              required
+            >
+              <option value="0%">0%</option>
+              <option value="20%">20%</option>
+              <option value="25%">25%</option>
+              <option value="35%">35%</option>
+              <option value="50%">50%</option>
+            </select>
 
-    {/* Edit Modal */}
-    <Modal open={modal.type === 'edit'} onClose={closeModal}>
-      <h2 className="text-xl font-bold mb-4">Edit Quote</h2>
-      <form onSubmit={handleEdit} className="space-y-3">
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="edit-insurer">Insurer</label>
-        <input
-          id="edit-insurer"
-          className="w-full border rounded px-3 py-2"
-          name="insurer"
-          placeholder="Insurer"
-          value={form.insurer}
-          onChange={handleChange}
-          required
-        />
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="edit-premium">Premium</label>
-        <input
-          id="edit-premium"
-          className="w-full border rounded px-3 py-2"
-          name="premium"
-          type="number"
-          placeholder="Premium"
-          value={form.premium}
-          onChange={handleChange}
-          required
-        />
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="edit-coverage">Coverage</label>
-        <input
-          id="edit-coverage"
-          className="w-full border rounded px-3 py-2"
-          name="coverage"
-          placeholder="Coverage"
-          value={form.coverage}
-          onChange={handleChange}
-          required
-        />
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="edit-ncb">NCB</label>
-        <select
-          id="edit-ncb"
-          className="w-full border rounded px-3 py-2"
-          name="ncb"
-          value={form.ncb}
-          onChange={handleChange}
-          required
-        >
-          <option value="0">0</option>
-          <option value="20">20</option>
-          <option value="25">25</option>
-          <option value="35">35</option>
-          <option value="50">50</option>
-        </select>
-        </div>
-        <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="edit-features">Features (comma separated)</label>
-        <input
-          id="edit-features"
-          className="w-full border rounded px-3 py-2"
-          name="features"
-          placeholder="Features (comma separated)"
-          value={form.features}
-          onChange={handleChange}
-          required
-        />
-        </div>
-        <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          className="px-4 py-2 bg-gray-200 rounded"
-          onClick={closeModal}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-violet-600 text-white rounded font-semibold"
-        >
-          Save
-        </button>
-        </div>
-      </form>
-    </Modal>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="add-duration">
+              Insurance Duration
+            </label>
+            <input
+              id="add-duration"
+              className="w-full border rounded px-3 py-2"
+              name="quoteInsuranceDuration"
+              placeholder="e.g. 1 Year"
+              value={form.quoteInsuranceDuration}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="add-idv">
+              IDV
+            </label>
+            <input
+              id="add-idv"
+              className="w-full border rounded px-3 py-2"
+              name="quoteIDV"
+              placeholder="e.g. 5,00,000"
+              value={form.quoteIDV}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="add-total-premium">
+              Total Premium
+            </label>
+            <input
+              id="add-total-premium"
+              className="w-full border rounded px-3 py-2"
+              name="quoteTotalPremium"
+              placeholder="e.g. 7,500"
+              value={form.quoteTotalPremium}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Features
+            </label>
+            <div className="flex flex-col gap-3">
+              {FEATURES_LIST.map((feature) => (
+                <label key={feature} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={form.features.includes(feature)}
+                    onChange={() => handleFeatureChange(feature)}
+                  />
+                  {feature}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              className="px-4 py-2 bg-gray-200 rounded"
+              onClick={closeModal}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-violet-600 text-white rounded font-semibold"
+            >
+              Add
+            </button>
+          </div>
+        </form>
+      </Modal>
 
-    {/* View Modal */}
-    <Modal open={modal.type === 'view'} onClose={closeModal}>
-      <h2 className="text-xl font-bold mb-4">Quote Details</h2>
-      {modal.quote && (
-        <div className="space-y-2">
-        <div>
-          <span className="font-medium">Insurer:</span> {modal.quote.insurer}
-        </div>
-        <div>
-          <span className="font-medium">Premium:</span> ₹{modal.quote.premium}
-        </div>
-        <div>
-          <span className="font-medium">Coverage:</span> {modal.quote.coverage}
-        </div>
-        <div>
-          <span className="font-medium">NCB:</span> {modal.quote.ncb}%
-        </div>
-        <div>
-          <span className="font-medium">Features:</span>
-          <ul className="list-disc ml-6">
-            {modal.quote.features.map((f, idx) => (
-            <li key={idx}>{f}</li>
-            ))}
-          </ul>
-        </div>
-        </div>
-      )}
-    </Modal>
+      {/* Edit Modal */}
+      <Modal open={modal.type === 'edit'} onClose={closeModal}>
+        <h2 className="text-xl font-bold mb-4">Edit Quote</h2>
+        <form onSubmit={handleEdit} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="edit-insurer">
+              Insurer
+            </label>
+            <input
+              id="edit-insurer"
+              className="w-full border rounded px-3 py-2"
+              name="insurer"
+              placeholder="Insurer"
+              value={form.insurer}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="edit-premium">
+              Premium
+            </label>
+            <input
+              id="edit-premium"
+              className="w-full border rounded px-3 py-2"
+              name="premium"
+              type="text"
+              placeholder="Premium"
+              value={form.premium}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="edit-coverage">
+              Coverage
+            </label>
+            <input
+              id="edit-coverage"
+              className="w-full border rounded px-3 py-2"
+              name="coverage"
+              placeholder="Coverage"
+              value={form.coverage}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+           <label className="block text-sm font-medium mb-1" htmlFor="add-ncb">
+              NCB
+            </label>
+            <select
+              id="add-ncb"
+              name="ncb"
+              className="w-full border rounded px-3 py-2"
+              value={form.ncb}
+              onChange={handleChange}
+              required
+            >
+              <option value="0%">0%</option>
+              <option value="20%">20%</option>
+              <option value="25%">25%</option>
+              <option value="35%">35%</option>
+              <option value="50%">50%</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="edit-duration">
+              Insurance Duration
+            </label>
+            <input
+              id="edit-duration"
+              className="w-full border rounded px-3 py-2"
+              name="quoteInsuranceDuration"
+              placeholder="e.g. 1 Year"
+              value={form.quoteInsuranceDuration}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="edit-idv">
+              IDV
+            </label>
+            <input
+              id="edit-idv"
+              className="w-full border rounded px-3 py-2"
+              name="quoteIDV"
+              placeholder="e.g. 5,00,000"
+              value={form.quoteIDV}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="edit-total-premium">
+              Total Premium
+            </label>
+            <input
+              id="edit-total-premium"
+              className="w-full border rounded px-3 py-2"
+              name="quoteTotalPremium"
+              placeholder="e.g. 7,500"
+              value={form.quoteTotalPremium}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Features
+            </label>
+            <div className="flex flex-col gap-3">
+              {FEATURES_LIST.map((feature) => (
+                <label key={feature} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={form.features.includes(feature)}
+                    onChange={() => handleFeatureChange(feature)}
+                  />
+                  {feature}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              className="px-4 py-2 bg-gray-200 rounded"
+              onClick={closeModal}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-violet-600 text-white rounded font-semibold"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* View Modal */}
+      <Modal open={modal.type === 'view'} onClose={closeModal}>
+        <h2 className="text-xl font-bold mb-4">Quote Details</h2>
+        {modal.quote && (
+          <div className="space-y-2">
+            <div>
+              <span className="font-medium">Insurer:</span> {modal.quote.insurer}
+            </div>
+            <div>
+              <span className="font-medium">Premium:</span> ₹{modal.quote.premium}
+            </div>
+            <div>
+              <span className="font-medium">Coverage:</span> {modal.quote.coverage}
+            </div>
+            <div>
+              <span className="font-medium">NCB:</span> {modal.quote.ncb}
+            </div>
+            <div>
+              <span className="font-medium">Insurance Duration:</span> {modal.quote.quoteInsuranceDuration}
+            </div>
+            <div>
+              <span className="font-medium">IDV:</span> {modal.quote.quoteIDV}
+            </div>
+            <div>
+              <span className="font-medium">Total Premium:</span> {modal.quote.quoteTotalPremium}
+            </div>
+            <div>
+              <span className="font-medium">Features:</span>
+              <ul className="list-disc ml-6">
+                {modal.quote.features.map((f, idx) => (
+                  <li key={idx}>{f}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Delete Modal */}
       <Modal open={modal.type === 'delete'} onClose={closeModal}>

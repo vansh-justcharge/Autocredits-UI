@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { File } from "lucide-react";
 
 interface DocumentUploadScreenProps {
@@ -7,19 +7,21 @@ interface DocumentUploadScreenProps {
 
 const DocumentUploadScreen: React.FC<DocumentUploadScreenProps> = ({ onContinue }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    // Handle dropped files
-    alert("File(s) dropped!");
+    const files = Array.from(e.dataTransfer.files);
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Handle selected files
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      alert(`${files.length} file(s) selected!`);
-    }
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    setSelectedFiles((prev) => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -47,6 +49,28 @@ const DocumentUploadScreen: React.FC<DocumentUploadScreenProps> = ({ onContinue 
           onChange={handleFileChange}
         />
       </div>
+      {selectedFiles.length > 0 && (
+        <table className="w-full mb-8 table-auto border">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 border">File Name</th>
+              <th className="px-4 py-2 border">Size</th>
+              <th className="px-4 py-2 border">Remove</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectedFiles.map((file, idx) => (
+              <tr key={idx}>
+                <td className="px-4 py-2 border">{file.name}</td>
+                <td className="px-4 py-2 border">{(file.size / 1024).toFixed(2)} KB</td>
+                <td className="px-4 py-2 border">
+                  <button onClick={() => removeFile(idx)} className="text-red-600">Remove</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       <button
         className="w-full bg-black text-white py-3 rounded-lg text-lg font-semibold transition-colors"
         onClick={onContinue}

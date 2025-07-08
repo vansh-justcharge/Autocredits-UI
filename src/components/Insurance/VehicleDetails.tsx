@@ -29,6 +29,7 @@ const VehicleDetails = () => {
               name="registerNumber"
               value={form.registerNumber}
               onChange={handleChange}
+              required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter register number"
             />
@@ -40,6 +41,7 @@ const VehicleDetails = () => {
               name="make"
               value={form.make}
               onChange={handleChange}
+              required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter make"
             />
@@ -50,6 +52,7 @@ const VehicleDetails = () => {
               type="text"
               name="model"
               value={form.model}
+              required
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter model"
@@ -61,6 +64,7 @@ const VehicleDetails = () => {
               type="text"
               name="variant"
               value={form.variant}
+              required
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter variant"
@@ -73,6 +77,7 @@ const VehicleDetails = () => {
               name="engineNumber"
               value={form.engineNumber}
               onChange={handleChange}
+              required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter engine number"
             />
@@ -84,6 +89,7 @@ const VehicleDetails = () => {
               name="chassiNumber"
               value={form.chassiNumber}
               onChange={handleChange}
+              required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter chassi number"
             />
@@ -95,6 +101,7 @@ const VehicleDetails = () => {
               name="makeMonthYear"
               value={form.makeMonthYear}
               onChange={handleChange}
+              required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             />
           </div>
@@ -104,6 +111,7 @@ const VehicleDetails = () => {
               type="month"
               name="registerMonthYear"
               value={form.registerMonthYear}
+              required
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             />

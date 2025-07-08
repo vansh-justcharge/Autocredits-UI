@@ -5,8 +5,8 @@ const NomineeReferenceDetails = () => {
     nomineeName: "",
     nomineeAge: "",
     nomineeRelation: "",
-    referenceName: "",
-    referenceNumber: "",
+    nomineeReferenceName: "",
+    nomineeReferenceNumber: "",
   });
 
   const handleChange = (e) => {
@@ -35,6 +35,7 @@ const NomineeReferenceDetails = () => {
                 name="nomineeName"
                 value={form.nomineeName}
                 onChange={handleChange}
+                required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
                 placeholder="Enter nominee name"
               />
@@ -46,6 +47,7 @@ const NomineeReferenceDetails = () => {
                 name="nomineeAge"
                 value={form.nomineeAge}
                 onChange={handleChange}
+                required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
                 placeholder="Enter age"
                 min="0"
@@ -57,6 +59,7 @@ const NomineeReferenceDetails = () => {
                 type="text"
                 name="nomineeRelation"
                 value={form.nomineeRelation}
+                required
                 onChange={handleChange}
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
                 placeholder="Enter relation"
@@ -72,9 +75,10 @@ const NomineeReferenceDetails = () => {
               <label className="block text-sm font-semibold mb-1">Name</label>
               <input
                 type="text"
-                name="referenceName"
-                value={form.referenceName}
+                name="nomineeReferenceName"
+                value={form.nomineeReferenceName}
                 onChange={handleChange}
+                required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
                 placeholder="Enter reference name"
               />
@@ -83,9 +87,10 @@ const NomineeReferenceDetails = () => {
               <label className="block text-sm font-semibold mb-1">Number</label>
               <input
                 type="tel"
-                name="referenceNumber"
-                value={form.referenceNumber}
+                name="nomineeReferenceNumber"
+                value={form.nomineeReferenceNumber}
                 onChange={handleChange}
+                required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
                 placeholder="Enter reference number"
               />

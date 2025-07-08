@@ -5,11 +5,11 @@ import logo from "../../../public/assets/AutoCredits_Logo.png";
 
 const menuItems = [
   { name: 'Dashboard', icon: SidebarIcons.Dashboard, path: '/dashboard' },
-  { name: 'Leads', icon: SidebarIcons.Leads, path: '/dashboard/leads' },
-  { name: 'Inventory', icon: SidebarIcons.Inventory, path: '/dashboard/inventory' },
-  { name: 'Loans', icon: SidebarIcons.Loans, path: '/dashboard/loans' },
+  // { name: 'Leads', icon: SidebarIcons.Leads, path: '/dashboard/leads' },
+  // { name: 'Inventory', icon: SidebarIcons.Inventory, path: '/dashboard/inventory' },
+  // { name: 'Loans', icon: SidebarIcons.Loans, path: '/dashboard/loans' },
   { name: 'Insurance', icon: SidebarIcons.Insurance, path: '/dashboard/insurance' },
-  { name: 'User Management', icon: SidebarIcons.User, path: '/dashboard/user-management' },
+  // { name: 'User Management', icon: SidebarIcons.User, path: '/dashboard/user-management' },
   // Sales / Finance handled separately for dropdown
 ];
 
@@ -119,7 +119,7 @@ const Sidebar = () => {
 
           {/* Sales / Finance Dropdown */}
           <div className="relative">
-            <button
+            {/* <button
               type="button"
               onClick={toggleSalesDropdown}
               className={`flex items-center w-full px-4 py-3 rounded-md transition-colors duration-200
@@ -143,9 +143,9 @@ const Sidebar = () => {
               >
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
-            </button>
+            </button> */}
             {/* Dropdown menu */}
-            {isSalesOpen && !isCollapsed && (
+            {/* {isSalesOpen && !isCollapsed && (
               <div className="ml-4 mt-1 flex flex-col gap-2">
                 {salesDropdownItems.map((subItem, idx) =>
                   subItem.path ? (
@@ -174,7 +174,7 @@ const Sidebar = () => {
                   )
                 )}
               </div>
-            )}
+            )} */}
           </div>
         </nav>
       </div>

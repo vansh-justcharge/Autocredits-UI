@@ -10,6 +10,7 @@ import NewPolicyDetails from "../components/Insurance/NewPolicy";
 import PaymentDetails from "../components/Insurance/PaymentDetails";
 import Quotes from "../components/Insurance/Quotes";
 import DocumentUploadScreen from "../components/Insurance/Document";
+import Inspection from "../components/Insurance/Inspection";
 
 // ProgressBar component
 type ProgressBarProps = {
@@ -83,6 +84,7 @@ const tabs = [
   "Customer-Details",
   "Nominee-Details",
   "Vehicle-Details",
+  "Inspecation",
   "Previous-Policy-Details",
   "Quotes",
   "New-Policy-Details",
@@ -99,6 +101,7 @@ const InsuranceCasePage = () => {
     if (location.pathname.endsWith("/New-Policy-Details")) return "New-Policy-Details";
     if (location.pathname.endsWith("/Quotes")) return "Quotes";
     if (location.pathname.endsWith("/Documents")) return "Documents";
+    if (location.pathname.endsWith("/Inspecation")) return "Inspecation";
     if (location.pathname.endsWith("/Previous-Policy-Details")) return "Previous-Policy-Details";
     if (location.pathname.endsWith("/Vehicle-Details")) return "Vehicle-Details";
     if (location.pathname.endsWith("/Nominee-Details")) return "Nominee-Details";
@@ -120,6 +123,9 @@ const InsuranceCasePage = () => {
     } else if (location.pathname.endsWith("/Customer-Details")) {
       setActiveTab("Customer-Details");
     }
+    else if (location.pathname.endsWith("/Inspecation")) {
+      setActiveTab("Inspecation");
+    }
     else if (location.pathname.endsWith("/Documents")) {
       setActiveTab("Documents");
     }
@@ -136,6 +142,7 @@ const InsuranceCasePage = () => {
     else if (tab === "Customer-Details") navigate("/dashboard/insurance-case/Customer-Details");
     else if (tab === "Nominee-Details") navigate("/dashboard/insurance-case/Nominee-Details");
     else if (tab === "Vehicle-Details") navigate("/dashboard/insurance-case/Vehicle-Details");
+    else if (tab === "Inspecation") navigate("/dashboard/insurance-case/Inspecation");
     else if (tab === "Previous-Policy-Details") navigate("/dashboard/insurance-case/Previous-Policy-Details");
     else if (tab === "Quotes") navigate("/dashboard/insurance-case/Quotes");
     else if (tab === "Documents") navigate("/dashboard/insurance-case/Documents");
@@ -165,6 +172,7 @@ const InsuranceCasePage = () => {
         <Route path="Vehicle-Details" element={<VehicleDetails />} />
         <Route path="Previous-Policy-Details" element={<PreviousPolicyDetails />} />
         <Route path="Quotes" element={<Quotes></Quotes>} />
+        <Route path="Inspecation" element={<Inspection></Inspection>} />
         <Route path="Documents" element={<DocumentUploadScreen onContinue={() => {}} />} />
         <Route path="New-Policy-Details" element={<NewPolicyDetails />} />
         <Route path="Payment-Details" element={<PaymentDetails />} />

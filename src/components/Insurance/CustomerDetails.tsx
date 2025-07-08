@@ -6,8 +6,8 @@ const CustomerDetails = () => {
     address: "",
     city: "",
     pin: "",
-    gender: "",
-    maritalStatus: "",
+    gender: "Male",
+    maritalStatus: "Single",
     dob: "",
     occupation: "",
     annualIncome: "",
@@ -22,7 +22,7 @@ const CustomerDetails = () => {
   };
 
   // For button group fields
-  const handleButtonGroup = (field, value) => {
+  const handleButtonGroup = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -42,6 +42,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter email"
+              required
             />
           </div>
           {/* Address */}
@@ -54,6 +55,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter address"
+              required
             />
           </div>
           {/* City */}
@@ -66,6 +68,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter city"
+              required
             />
           </div>
           {/* Pin */}
@@ -79,6 +82,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter pin"
+              required
             />
           </div>
           {/* Gender as Button Group */}
@@ -144,6 +148,7 @@ const CustomerDetails = () => {
               type="date"
               name="dob"
               value={form.dob}
+              required
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             />
@@ -158,6 +163,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter occupation"
+              required
             />
           </div>
           {/* Annual Income */}
@@ -170,6 +176,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter annual income"
+              required
             />
           </div>
           {/* PAN */}
@@ -183,6 +190,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter PAN"
+              required
             />
           </div>
           {/* Adhar */}
@@ -195,6 +203,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter Adhar"
+              required
             />
           </div>
           {/* GST No */}
@@ -207,6 +216,7 @@ const CustomerDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter GST No"
+              required
             />
           </div>
         </div>

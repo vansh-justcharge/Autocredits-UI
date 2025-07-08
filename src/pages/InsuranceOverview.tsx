@@ -10,10 +10,10 @@ const InsuranceCaseDetails = () => {
     status: "",
     followUp: "",
     assignTo: "",
-    comment: "",
+    caseComment: "",
   });
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -33,6 +33,7 @@ const InsuranceCaseDetails = () => {
               value={form.buyerName}
               onChange={handleChange}
               placeholder="Enter buyer name"
+              required
             />
           </div>
           {/* Mobile Number */}
@@ -46,6 +47,7 @@ const InsuranceCaseDetails = () => {
               value={form.mobileNumber}
               onChange={handleChange}
               placeholder="Enter mobile number"
+              required
             />
           </div>
           {/* Buyer Type */}
@@ -85,7 +87,6 @@ const InsuranceCaseDetails = () => {
               value={form.insuranceCategory}
               onChange={handleChange}
             >
-              <option value="">Select category</option>
               <option value="New Car">New Car</option>
               <option value="Renewal">Renewal</option>
               <option value="Health">Health</option>
@@ -100,7 +101,6 @@ const InsuranceCaseDetails = () => {
               value={form.source}
               onChange={handleChange}
             >
-              <option value="">Select source</option>
               <option value="Dealer">Dealer</option>
               <option value="Online">Online</option>
               <option value="Referral">Referral</option>
@@ -115,7 +115,6 @@ const InsuranceCaseDetails = () => {
               value={form.status}
               onChange={handleChange}
             >
-              <option value="">Select status</option>
               <option value="Follow up">Follow up</option>
               <option value="Closed">Closed</option>
               <option value="Pending">Pending</option>
@@ -129,6 +128,7 @@ const InsuranceCaseDetails = () => {
               type="date"
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               value={form.followUp}
+              required
               onChange={handleChange}
             />
           </div>
@@ -140,6 +140,7 @@ const InsuranceCaseDetails = () => {
               type="text"
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               value={form.assignTo}
+              required
               onChange={handleChange}
               placeholder="Enter assignee"
             />
@@ -148,10 +149,11 @@ const InsuranceCaseDetails = () => {
           <div className="col-span-2">
             <label className="block text-sm font-semibold mb-1">Comment</label>
             <input
-              name="comment"
+              name="caseComment"
               type="text"
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-              value={form.comment}
+              value={form.caseComment}
+              required
               onChange={handleChange}
               placeholder="Enter comment"
             />

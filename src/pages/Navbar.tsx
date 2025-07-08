@@ -136,7 +136,7 @@ const Navbar: React.FC<NavbarProps> = ({ title, tabs, activeTab, setActiveTab })
           {tabs.map((tab) => (
             <button
               key={tab}
-              className={`px-6 py-4 text-[12px] font-medium ${activeTab === tab
+              className={`px-4 py-4 text-[13px] font-medium ${activeTab === tab
                   ? 'text-gray-900 border-b-2 border-gray-900'
                   : 'text-gray-500 hover:text-gray-700'
                 }`}

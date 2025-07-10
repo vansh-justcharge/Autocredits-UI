@@ -1,44 +1,42 @@
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useFormContext } from "../../contexts/FormContext";
+
+const INITIAL_FORM = {
+  policyIssued: "",
+  newInsuranceCompany: "",
+  newBranch: "",
+  newPolicyType: "",
+  newPolicyNumber: "",
+  newIssueDate: "",
+  newDueDate: "",
+  newNcbDiscount: "",
+  newInsuranceDuration: "",
+  idv: "",
+  NewTotalPremium: "",
+};
 
 const NewPolicyDetails = () => {
-  const location = useLocation();
-  const quoteData = location.state || {};
+  const { form, updateForm } = useFormContext();
+  const navigate = useNavigate();
 
-  // Set initial form state with quote data for fixed fields
-  const [form, setForm] = useState({
-    policyIssued: "",
-    newInsuranceCompany: "",
-    newBranch: "",
-    newPolicyType: "",
-    newPolicyNumber: "",
-    newIssueDate: "",
-    newDueDate: "",
-    newNcbDiscount: "",
-    newInsuranceDuration: "",
-    idv: "",
-    NewTotalPremium: "",
-  });
+  // If you want to ensure all fields are prefilled, you can do this:
+  React.useEffect(() => {
+    // Only set defaults if form is empty
+    if (!form || Object.keys(form).length === 0) {
+      updateForm(INITIAL_FORM);
+    }
+    // eslint-disable-next-line
+  }, []);
 
-  // On mount, set fixed fields from quote
-  useEffect(() => {
-    setForm((prev) => ({
-      ...prev,
-      newNcbDiscount: quoteData.newNcbDiscount || "",
-      newInsuranceDuration: quoteData.newInsuranceDuration || "",
-      idv: quoteData.idv || "",
-      NewTotalPremium: quoteData.NewTotalPremium || "",
-    }));
-  }, [quoteData]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    updateForm({ [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Submitted!\n" + JSON.stringify(form, null, 2));
+    navigate("/dashboard/insurance-case/Payment-Details");
   };
 
   return (
@@ -51,7 +49,7 @@ const NewPolicyDetails = () => {
             <label className="block text-sm font-semibold mb-1">Policy Issued</label>
             <select
               name="policyIssued"
-              value={form.policyIssued}
+              value={form.policyIssued || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             >
@@ -66,7 +64,7 @@ const NewPolicyDetails = () => {
             <input
               type="text"
               name="newInsuranceCompany"
-              value={form.newInsuranceCompany}
+              value={form.newInsuranceCompany || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter insurance company"
@@ -79,7 +77,7 @@ const NewPolicyDetails = () => {
             <input
               type="text"
               name="newBranch"
-              value={form.newBranch}
+              value={form.newBranch || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter branch"
@@ -91,7 +89,7 @@ const NewPolicyDetails = () => {
             <label className="block text-sm font-semibold mb-1">Policy Type</label>
             <select
               name="newPolicyType"
-              value={form.newPolicyType}
+              value={form.newPolicyType || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             >
@@ -106,7 +104,7 @@ const NewPolicyDetails = () => {
             <input
               type="text"
               name="newPolicyNumber"
-              value={form.newPolicyNumber}
+              value={form.newPolicyNumber || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter policy number"
@@ -119,7 +117,7 @@ const NewPolicyDetails = () => {
             <input
               type="date"
               name="newIssueDate"
-              value={form.newIssueDate}
+              value={form.newIssueDate || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               required
@@ -131,7 +129,7 @@ const NewPolicyDetails = () => {
             <input
               type="date"
               name="newDueDate"
-              value={form.newDueDate}
+              value={form.newDueDate || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               required
@@ -143,7 +141,7 @@ const NewPolicyDetails = () => {
             <input
               type="text"
               name="newNcbDiscount"
-              value={form.newNcbDiscount}
+              value={form.newNcbDiscount || ""}
               readOnly
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700 cursor-not-allowed"
               tabIndex={-1}
@@ -155,7 +153,7 @@ const NewPolicyDetails = () => {
             <input
               type="text"
               name="newInsuranceDuration"
-              value={form.newInsuranceDuration}
+              value={form.newInsuranceDuration || ""}
               readOnly
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700 cursor-not-allowed"
               tabIndex={-1}
@@ -167,7 +165,7 @@ const NewPolicyDetails = () => {
             <input
               type="text"
               name="idv"
-              value={form.idv}
+              value={form.idv || ""}
               readOnly
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700 cursor-not-allowed"
               tabIndex={-1}
@@ -179,7 +177,7 @@ const NewPolicyDetails = () => {
             <input
               type="text"
               name="NewTotalPremium"
-              value={form.NewTotalPremium}
+              value={form.NewTotalPremium || ""}
               readOnly
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700 cursor-not-allowed"
               tabIndex={-1}

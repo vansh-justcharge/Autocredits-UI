@@ -1,33 +1,32 @@
-import React, { useState } from "react";
+import React from "react";
+import { useFormContext } from "../../contexts/FormContext";
+import { useNavigate } from "react-router-dom";
 
 const VehicleDetails = () => {
-  const [form, setForm] = useState({
-    registerNumber: "",
-    make: "",
-    model: "",
-    variant: "",
-    engineNumber: "",
-    chassiNumber: "",
-    makeMonthYear: "",
-    registerMonthYear: "",
-  });
+  const { form, updateForm } = useFormContext();
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    updateForm({ [name]: value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate("/dashboard/insurance-case/Inspecation");
   };
 
   return (
     <div className="max-w-full mx-auto p-8 bg-white rounded shadow">
       <h2 className="text-2xl font-semibold mb-4">Vehicle Details</h2>
-      <form>
+      <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-2 gap-x-8 gap-y-5">
           <div>
             <label className="block text-sm font-semibold mb-1">Register Number</label>
             <input
               type="text"
               name="registerNumber"
-              value={form.registerNumber}
+              value={form.registerNumber || ""}
               onChange={handleChange}
               required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -39,7 +38,7 @@ const VehicleDetails = () => {
             <input
               type="text"
               name="make"
-              value={form.make}
+              value={form.make || ""}
               onChange={handleChange}
               required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -51,7 +50,7 @@ const VehicleDetails = () => {
             <input
               type="text"
               name="model"
-              value={form.model}
+              value={form.model || ""}
               required
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -63,7 +62,7 @@ const VehicleDetails = () => {
             <input
               type="text"
               name="variant"
-              value={form.variant}
+              value={form.variant || ""}
               required
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -75,7 +74,7 @@ const VehicleDetails = () => {
             <input
               type="text"
               name="engineNumber"
-              value={form.engineNumber}
+              value={form.engineNumber || ""}
               onChange={handleChange}
               required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -87,7 +86,7 @@ const VehicleDetails = () => {
             <input
               type="text"
               name="chassiNumber"
-              value={form.chassiNumber}
+              value={form.chassiNumber || ""}
               onChange={handleChange}
               required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -99,7 +98,7 @@ const VehicleDetails = () => {
             <input
               type="month"
               name="makeMonthYear"
-              value={form.makeMonthYear}
+              value={form.makeMonthYear || ""}
               onChange={handleChange}
               required
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -110,7 +109,7 @@ const VehicleDetails = () => {
             <input
               type="month"
               name="registerMonthYear"
-              value={form.registerMonthYear}
+              value={form.registerMonthYear || ""}
               required
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"

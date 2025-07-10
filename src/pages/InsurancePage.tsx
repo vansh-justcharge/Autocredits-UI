@@ -1,9 +1,85 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+
+interface InsuranceCase {
+  id: number;
+  buyerName: string;
+  mobileNumber: string;
+  buyerType: string;
+  insuranceCategory: string;
+  source: string;
+  status: string;
+  followUp: string;
+  assignTo: string;
+  caseComment: string;
+  email: string;
+  address: string;
+  city: string;
+  pin: string;
+  gender: string;
+  maritalStatus: string;
+  dob: string;
+  occupation: string;
+  annualIncome: string;
+  pan: string;
+  adhar: string;
+  gst: string;
+  nomineeName: string;
+  nomineeAge: string;
+  nomineeRelation: string;
+  nomineeReferenceName: string;
+  nomineeReferenceNumber: string;
+  registerNumber: string;
+  make: string;
+  model: string;
+  variant: string;
+  engineNumber: string;
+  chassiNumber: string;
+  makeMonthYear: string;
+  registerMonthYear: string;
+  inspectionStatus: string;
+  inspectionReferenceNo: string;
+  inseptionComment: string;
+  insuranceCompany: string;
+  branch: string;
+  policyType: string;
+  policyNumber: string;
+  issueDate: string;
+  dueDate: string;
+  ncbDiscount: string;
+  claimLastYear: string;
+  insurer: string;
+  premium: string;
+  coverage: string;
+  ncb: string;
+  quoteInsuranceDuration: string;
+  quoteIDV: string;
+  quoteTotalPremium: string;
+  features: string[];
+  policyIssued: string;
+  newInsuranceCompany: string;
+  newBranch: string;
+  newPolicyType: string;
+  newPolicyNumber: string;
+  newIssueDate: string;
+  newDueDate: string;
+  newNcbDiscount: string;
+  newInsuranceDuration: string;
+  idv: string;
+  NewTotalPremium: string;
+  paymentAmount: string;
+  paymentDate: string;
+  receiptNumber: string;
+  receiptDate: string;
+  bankName: string;
+  paymentMode: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const PAGE_SIZE = 10;
-
 const SOURCE_OPTIONS = [
   "Source",
   "Online",
@@ -14,16 +90,16 @@ const SOURCE_OPTIONS = [
 const STATUS_OPTIONS = [
   "Status",
   "New",
-  "Pending Documentation",
+  "Pending",
+  "Follow up",
   "Approved",
   "Issued",
   "Rejected",
   "Expired",
-  "Cancelled",
-  "Follow-Up"
+  "Cancelled"
 ];
 
-const InsurancePage = () => {
+const InsurancePage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Overview');
   const [filters, setFilters] = useState({
@@ -35,111 +111,42 @@ const InsurancePage = () => {
   });
   const [page, setPage] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
-  const tabs = ['Overview'];
+  const [allCases, setAllCases] = useState<InsuranceCase[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Example data (replace with API data as needed)
-  const insuranceCases = [
-    {
-      clientInfo: {
-        name: "Inshra Fatma",
-        id: "987654356",
-        email: "inshrafatma@gmail.com",
-        address: "lajpat nagar, New Delhi",
-        date: "2024-08-10"
-      },
-      vehicleInfo: {
-        brand: "Maruti Suzuki",
-        model: "HR87654678 - 201 model",
-        type: "Used Car"
-      },
-      policyDetails: {
-        policyNo: "8765435try",
-        company: "Policy Bazar",
-        dueDate: "2026-08-04",
-        status: "Expired"
-      },
-      caseDetails: {
-        source: "Broker",
-        showroom: "Balaji Motors",
-        assignedTo: "Riya"
-      },
-      caseUpdate: {
-        status: "New",
-        addedOn: "2024-09-12"
-      },
-      additionalDetails: "Customer prefers morning calls."
-    },
-    {
-      clientInfo: {
-        name: "Aisha Khan",
-        id: "123456789",
-        email: "aishakhan@example.com",
-        address: "Greenwood Avenue, Mumbai",
-        date: "2024-09-15"
-      },
-      vehicleInfo: {
-        brand: "Honda Civic",
-        model: "XYZ12345678 - 2020 model",
-        type: "Used car"
-      },
-      policyDetails: {
-        policyNo: "1234567abc",
-        company: "Insurance Hub",
-        dueDate: "2026-09-10",
-        status: "Approved"
-      },
-      caseDetails: {
-        source: "Online",
-        showroom: "Star Motors",
-        assignedTo: "Maya"
-      },
-      caseUpdate: {
-        status: "Pending Documentation",
-        addedOn: "2024-09-15"
-      },
-      additionalDetails: ""
-    }
-  ];
+  useEffect(() => {
+    const fetchCases = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/insurance/get`);
+        setAllCases(res.data || []);
+      } catch (err) {
+        setAllCases([]);
+      }
+      setLoading(false);
+    };
+    fetchCases();
+  }, []);
 
-  // Duplicate cases for pagination demo
-  const [allCases, setAllCases] = useState(() => {
-    const arr = [];
-    for (let i = 0; i < 30; i++) {
-      arr.push({
-        ...insuranceCases[i % insuranceCases.length],
-        clientInfo: {
-          ...insuranceCases[i % insuranceCases.length].clientInfo,
-          name: insuranceCases[i % insuranceCases.length].clientInfo.name + ' ' + (i + 1)
-        }
-      });
-    }
-    return arr;
-  });
-
-  // Filtering logic
   const filteredCases = allCases.filter((c) => {
     const dealerSearch = filters.dealer.trim().toLowerCase();
     if (dealerSearch) {
       if (
-        !(
-          c.clientInfo.name.toLowerCase().includes(dealerSearch) ||
-          c.clientInfo.id.toLowerCase().includes(dealerSearch)
-        )
+        !(c.buyerName?.toLowerCase().includes(dealerSearch) ||
+          c.mobileNumber?.toLowerCase().includes(dealerSearch))
       ) return false;
     }
-    if (filters.source !== 'Source' && c.caseDetails.source !== filters.source) return false;
-    if (filters.status !== 'Status' && c.policyDetails.status !== filters.status && c.caseUpdate.status !== filters.status) return false;
-
-    // Date range filter: check if caseUpdate.addedOn is between fromDate and toDate (inclusive)
+    if (filters.source !== 'Source' && c.source !== filters.source) return false;
+    if (filters.status !== 'Status' && c.status !== filters.status) return false;
     if (filters.fromDate && filters.toDate) {
-      const issueDate = c.caseUpdate.addedOn;
-      if (issueDate < filters.fromDate || issueDate > filters.toDate) return false;
+      const created = c.createdAt?.slice(0, 10);
+      if (created < filters.fromDate || created > filters.toDate) return false;
     } else if (filters.fromDate) {
-      if (c.caseUpdate.addedOn < filters.fromDate) return false;
+      if ((c.createdAt?.slice(0, 10) || '') < filters.fromDate) return false;
     } else if (filters.toDate) {
-      if (c.caseUpdate.addedOn > filters.toDate) return false;
+      if ((c.createdAt?.slice(0, 10) || '') > filters.toDate) return false;
     }
     return true;
   });
@@ -148,13 +155,12 @@ const InsurancePage = () => {
   const pageCount = Math.ceil(total / PAGE_SIZE);
   const paginatedCases = filteredCases.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  // UI handlers
-  const handleDealerSearch = (e) => {
+  const handleDealerSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters({ ...filters, dealer: e.target.value });
     setPage(0);
   };
 
-  const handleFilterDropdown = (field, value) => {
+  const handleFilterDropdown = (field: string, value: string) => {
     setFilters((prev) => ({
       ...prev,
       [field]: value
@@ -162,8 +168,7 @@ const InsurancePage = () => {
     setPage(0);
   };
 
-  // Date filter handlers
-  const handleDateChange = (field, value) => {
+  const handleDateChange = (field: string, value: string) => {
     setFilters((prev) => ({
       ...prev,
       [field]: value
@@ -171,36 +176,45 @@ const InsurancePage = () => {
     setPage(0);
   };
 
-  // View and Edit handlers: navigate to InsuranceModel
-  const handleView = (caseItem) => {
+  const handleView = (caseItem: InsuranceCase) => {
     navigate('/dashboard/insurance/model', { state: { insuranceCase: caseItem, mode: 'view' } });
   };
 
-  const handleEdit = (caseItem) => {
+  const handleEdit = (caseItem: InsuranceCase) => {
     navigate('/dashboard/insurance/model', { state: { insuranceCase: caseItem, mode: 'edit' } });
   };
 
-  // Delete logic
-  const handleDelete = (indexOnPage) => {
+  const handleDelete = (indexOnPage: number) => {
     setDeleteIndex(indexOnPage);
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    const globalIndex = allCases.findIndex((item) =>
-      item.clientInfo.name === paginatedCases[deleteIndex].clientInfo.name &&
-      item.clientInfo.id === paginatedCases[deleteIndex].clientInfo.id
-    );
-    if (globalIndex !== -1) {
-      const newCases = [...allCases];
-      newCases.splice(globalIndex, 1);
-      setAllCases(newCases);
-      if ((page > 0) && ((newCases.length - page * PAGE_SIZE) <= 0)) {
-        setPage(page - 1);
-      }
+  const confirmDelete = async () => {
+    if (deleteIndex === null) return;
+    const caseToDelete = paginatedCases[deleteIndex];
+    if (!caseToDelete) {
+      setShowDeleteModal(false);
+      setDeleteIndex(null);
+      return;
     }
-    setShowDeleteModal(false);
-    setDeleteIndex(null);
+    try {
+      await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/insurance/delete/${caseToDelete.id}`);
+      const globalIndex = allCases.findIndex((item) => item.id === caseToDelete.id);
+      if (globalIndex !== -1) {
+        const newCases = [...allCases];
+        newCases.splice(globalIndex, 1);
+        setAllCases(newCases);
+        if ((page > 0) && ((newCases.length - page * PAGE_SIZE) <= 0)) {
+          setPage(page - 1);
+        }
+      }
+      setShowDeleteModal(false);
+      setDeleteIndex(null);
+    } catch (err) {
+      alert('Failed to delete insurance case from server.');
+      setShowDeleteModal(false);
+      setDeleteIndex(null);
+    }
   };
 
   return (
@@ -208,18 +222,18 @@ const InsurancePage = () => {
       {Navbar && (
         <Navbar
           title="Insurance Management"
-          tabs={tabs}
+          tabs={['Overview']}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
         />
       )}
-      <div className="p-6">
-        {/* Filters and Add New Car Button */}
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-          <div className="flex items-center flex-wrap gap-4">
+      <div className="p-4 md:p-6">
+        {/* Filters and Add New Insurance Button */}
+        <div className="flex flex-wrap items-center justify-between mb-6 gap-2">
+          <div className="flex flex-wrap items-center gap-4">
             <input
               type="text"
-              placeholder="Search by Dealer Name or Phone"
+              placeholder="Search by Buyer Name or Mobile"
               value={filters.dealer}
               onChange={handleDealerSearch}
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm w-64"
@@ -242,9 +256,8 @@ const InsurancePage = () => {
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
-            {/* Date range filter group styled like the loan page */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md ">
-              <span className="text-sm text-gray-700">Issue Date:</span>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md">
+              <span className="text-sm text-gray-700">Created:</span>
               <input
                 type="date"
                 value={filters.fromDate}
@@ -279,92 +292,87 @@ const InsurancePage = () => {
               Reset
             </button>
           </div>
-          <button onClick={() => navigate("/dashboard/insurance-case")}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+          <button
+            onClick={() => navigate("/dashboard/insurance-case")}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
             Add New Insurance
           </button>
         </div>
         {/* Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Loading insurance cases...</div>
+          ) : (
           <table className="w-full min-w-[900px]">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client Info
+                <th className="px-3 md:px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Buyer Info
                 </th>
-                <th className="px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 md:px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Vehicle Info
                 </th>
-                <th className="px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 md:px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Policy Details
                 </th>
-                <th className="px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Case Details
-                </th>
-                <th className="px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                <th className="px-3 md:px-4 py-3 text-left align-top text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status & Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedCases.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-4 text-center text-gray-500">
+                  <td colSpan={4} className="px-4 py-4 text-center text-gray-500">
                     No insurance cases found.
                   </td>
                 </tr>
               ) : (
                 paginatedCases.map((caseItem, index) => (
-                  <tr key={index} className="hover:bg-gray-50 align-top">
-                    <td className="px-4 py-3 text-left align-top break-words">
-                      <div className="text-sm font-medium text-gray-900">{caseItem.clientInfo.name}</div>
-                      <div className="text-xs text-gray-500">{caseItem.clientInfo.id}</div>
-                      <div className="text-xs text-gray-500">{caseItem.clientInfo.email}</div>
-                      <div className="text-xs text-gray-500">{caseItem.clientInfo.address}</div>
-                      <div className="text-xs text-gray-500">Login: {caseItem.clientInfo.date}</div>
+                  <tr key={caseItem.id} className="hover:bg-gray-50 align-top">
+                    <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
+                      <div className="font-semibold text-gray-900">{caseItem.buyerName}</div>
+                      <div className="text-xs text-gray-500">{caseItem.mobileNumber}</div>
+                      <div className="text-xs text-gray-500">{caseItem.email}</div>
+                      <div className="text-xs text-gray-500">{caseItem.address}, {caseItem.city}</div>
+                      <div className="text-xs text-gray-500">Created: {caseItem.createdAt?.slice(0,10)}</div>
                     </td>
-                    <td className="px-4 py-3 text-left align-top break-words">
-                      <div className="text-sm font-medium text-gray-900">{caseItem.vehicleInfo.brand}</div>
-                      <div className="text-xs text-gray-500">{caseItem.vehicleInfo.model}</div>
-                      <div className="text-xs text-gray-500">{caseItem.vehicleInfo.type}</div>
+                    <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
+                      <div className="font-semibold text-gray-900">{caseItem.make} {caseItem.model} ({caseItem.variant})</div>
+                      <div className="text-xs text-gray-500">Reg: {caseItem.registerNumber}</div>
+                      <div className="text-xs text-gray-500">Year: {caseItem.makeMonthYear}</div>
                     </td>
-                    <td className="px-4 py-3 text-left align-top break-words">
-                      <div className="text-xs text-gray-900">No: {caseItem.policyDetails.policyNo}</div>
-                      <div className="text-xs text-gray-500">{caseItem.policyDetails.company}</div>
-                      <div className="text-xs text-gray-500">Due: {caseItem.policyDetails.dueDate}</div>
+                    <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
+                      <div className="text-xs font-semibold text-gray-900">No: {caseItem.policyNumber}</div>
+                      <div className="text-xs text-gray-500">{caseItem.insuranceCompany}</div>
+                      <div className="text-xs text-gray-500">Due: {caseItem.dueDate}</div>
                       <div className="mt-1">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          caseItem.policyDetails.status === 'Expired'
+                          caseItem.status === 'Expired'
                             ? 'bg-red-100 text-red-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}>
-                          {caseItem.policyDetails.status}
+                          {caseItem.status}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-left align-top break-words">
-                      <div className="text-xs text-gray-900">Source: {caseItem.caseDetails.source}</div>
-                      <div className="text-xs text-gray-500">Showroom: {caseItem.caseDetails.showroom}</div>
-                      <div className="text-xs text-gray-500">Assigned: {caseItem.caseDetails.assignedTo}</div>
-                      <div className="text-xs text-gray-500">Issue: {caseItem.caseUpdate.addedOn}</div>
-                      <div className="text-xs text-gray-500">Status: {caseItem.caseUpdate.status}</div>
-                    </td>
-                    <td className="px-4 py-3 text-left align-top">
-                      <div className="flex flex-col gap-2">
+                    <td className="px-3 md:px-4 py-3 text-left align-top min-w-[130px]">
+                      <div className="flex flex-row flex-wrap gap-2 md:flex-col md:gap-2">
                         <button
-                          className="bg-white border border-gray-300 rounded px-3 py-1 text-xs text-gray-700 hover:bg-gray-50"
+                          className="bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 min-w-[54px]"
                           onClick={() => handleView(caseItem)}
                         >
                           View
                         </button>
                         <button
-                          className="bg-blue-600 text-white rounded px-3 py-1 text-xs hover:bg-blue-700"
+                          className="bg-blue-600 text-white rounded px-2 py-1 text-xs hover:bg-blue-700 min-w-[54px]"
                           onClick={() => handleEdit(caseItem)}
                         >
                           Edit
                         </button>
                         <button
-                          className="bg-red-600 text-white rounded px-3 py-1 text-xs hover:bg-red-700"
+                          className="bg-red-600 text-white rounded px-2 py-1 text-xs hover:bg-red-700 min-w-[54px]"
                           onClick={() => handleDelete(index)}
                         >
                           Delete
@@ -376,12 +384,13 @@ const InsurancePage = () => {
               )}
             </tbody>
           </table>
+          )}
           {/* Pagination Controls */}
-          <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex flex-col md:flex-row items-center justify-between px-4 py-2 gap-2">
             <div className="text-sm text-gray-600">
               Showing {paginatedCases.length > 0 ? page * PAGE_SIZE + 1 : 0} to {Math.min((page + 1) * PAGE_SIZE, total)} of {total} entries
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1 flex-wrap">
               <button
                 className="px-2 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
                 onClick={() => setPage(0)}
@@ -434,7 +443,7 @@ const InsurancePage = () => {
                   className="bg-gray-200 px-5 py-2 rounded hover:bg-gray-300"
                   onClick={() => setShowDeleteModal(false)}
                 >
-                  Cancel
+                  Cancel  
                 </button>
                 <button className="bg-red-600 text-white px-5 py-2 rounded hover:bg-red-700" onClick={confirmDelete}>
                   Delete

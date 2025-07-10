@@ -17,6 +17,7 @@ import UserManagementPage from './pages/UserManagementPage';
 import SalesPage from './pages/SalesPage';
 import PaymentTrack from './pages/PaymentTrack';
 import LoanCase from './pages/LoanCase';
+import { FormProvider } from './contexts/FormContext';
 // import Profile from './pages/Profile';
 
 const App: React.FC = () => {
@@ -99,12 +100,15 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          
           <Route
             path="/dashboard/insurance-case/*"
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <InsuranceCase />
+                  <FormProvider>
+                     <InsuranceCase />
+                  </FormProvider>
                 </DashboardLayout>
               </ProtectedRoute>
             }

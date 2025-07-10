@@ -1,36 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
+import { useFormContext } from "../../contexts/FormContext";
+import { useNavigate } from "react-router-dom";
 
 const CustomerDetails = () => {
-  const [form, setForm] = useState({
-    email: "",
-    address: "",
-    city: "",
-    pin: "",
-    gender: "Male",
-    maritalStatus: "Single",
-    dob: "",
-    occupation: "",
-    annualIncome: "",
-    pan: "",
-    adhar: "",
-    gst: "",
-  });
+  const { form, updateForm } = useFormContext();
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    updateForm({ [name]: value });
   };
 
   // For button group fields
   const handleButtonGroup = (field: string, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    updateForm({ [field]: value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate("/dashboard/insurance-case/Nominee-Details");
   };
 
   return (
     <div className="max-w-full mx-auto p-8 bg-white rounded shadow">
       <h2 className="text-2xl font-semibold mb-2">Customer Details</h2>
       <p className="mb-6 text-gray-500">Personal details</p>
-      <form>
+      <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-2 gap-x-8 gap-y-5">
           {/* Email */}
           <div>
@@ -38,7 +33,7 @@ const CustomerDetails = () => {
             <input
               type="email"
               name="email"
-              value={form.email}
+              value={form.email || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter email"
@@ -51,7 +46,7 @@ const CustomerDetails = () => {
             <input
               type="text"
               name="address"
-              value={form.address}
+              value={form.address || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter address"
@@ -64,7 +59,7 @@ const CustomerDetails = () => {
             <input
               type="text"
               name="city"
-              value={form.city}
+              value={form.city || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter city"
@@ -78,7 +73,7 @@ const CustomerDetails = () => {
               type="text"
               name="pin"
               maxLength={6}
-              value={form.pin}
+              value={form.pin || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter pin"
@@ -147,7 +142,7 @@ const CustomerDetails = () => {
             <input
               type="date"
               name="dob"
-              value={form.dob}
+              value={form.dob || ""}
               required
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -159,7 +154,7 @@ const CustomerDetails = () => {
             <input
               type="text"
               name="occupation"
-              value={form.occupation}
+              value={form.occupation || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter occupation"
@@ -172,7 +167,7 @@ const CustomerDetails = () => {
             <input
               type="number"
               name="annualIncome"
-              value={form.annualIncome}
+              value={form.annualIncome || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter annual income"
@@ -186,7 +181,7 @@ const CustomerDetails = () => {
               type="text"
               name="pan"
               maxLength={25}
-              value={form.pan}
+              value={form.pan || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter PAN"
@@ -199,7 +194,7 @@ const CustomerDetails = () => {
             <input
               type="text"
               name="adhar"
-              value={form.adhar}
+              value={form.adhar || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter Adhar"
@@ -212,7 +207,7 @@ const CustomerDetails = () => {
             <input
               type="text"
               name="gst"
-              value={form.gst}
+              value={form.gst || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               placeholder="Enter GST No"

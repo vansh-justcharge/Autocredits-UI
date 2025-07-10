@@ -1,28 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
+import { useFormContext } from "../../contexts/FormContext";
+import axios from "axios";
 
 const PAYMENT_MODES = ["Cash", "Cheque", "Online"];
-const INHOUSE_TYPES = ["New Car Deal", "Used Car Deal", "Outstanding Payment"];
 
 const PaymentScreen = () => {
-  const [paymentBy, setPaymentBy] = useState<"Customer" | "AutoCredits">("Customer");
-  const [paymentMode, setPaymentMode] = useState(PAYMENT_MODES[0]);
-  const [inhouseType, setInhouseType] = useState(INHOUSE_TYPES[0]);
-  const [form, setForm] = useState({
-    paymentAmount: "",
-    paymentDate: "",
-    receiptNumber: "",
-    receiptDate: "",
-    bankName: "",
-  });
+  const { form, updateForm, resetForm } = useFormContext();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    updateForm({ [name]: value });
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handlePaymentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Process payment here
-    alert("Payment details submitted!");
+    console.log("Submitted!\n" + JSON.stringify(form, null, 2));
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/insurance/create`, form);
+      if (res.status === 200 || res.status === 201) {
+        alert("Payment and insurance details submitted successfully!");
+        resetForm();
+      } else {
+        alert("Submission failed. Please try again.");
+      }
+    } catch (error) {
+      alert("Error submitting details. Please check your connection or try again.");
+    }
   };
 
   return (
@@ -32,158 +35,92 @@ const PaymentScreen = () => {
         className="bg-gray-50 rounded-lg p-6 space-y-6"
         onSubmit={handlePaymentSubmit}
       >
-        {/* Payment By */}
-        <div>
-          <label className="block text-sm font-semibold mb-2">Payment By</label>
-          <div className="flex gap-6">
-            <label
-              className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer border transition ${
-                paymentBy === "Customer"
-                  ? "border-black bg-gray-200 font-bold"
-                  : "border-gray-300"
-              }`}
-            >
-              <input
-                type="radio"
-                name="paymentBy"
-                value="Customer"
-                checked={paymentBy === "Customer"}
-                onChange={() => setPaymentBy("Customer")}
-                className="accent-black"
-              />
-              Customer
-            </label>
-            <label
-              className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer border transition ${
-                paymentBy === "AutoCredits"
-                  ? "border-black bg-gray-200 font-bold"
-                  : "border-gray-300"
-              }`}
-            >
-              <input
-                type="radio"
-                name="paymentBy"
-                value="AutoCredits"
-                checked={paymentBy === "AutoCredits"}
-                onChange={() => setPaymentBy("AutoCredits")}
-                className="accent-black"
-              />
-              AutoCredits
-            </label>
-          </div>
-        </div>
-
-        {/* If Customer, show payment details */}
-        {paymentBy === "Customer" && (
-          <>
-            <div className="grid grid-cols-2 gap-6">
-              {/* Amount */}
-              <div>
-                <label className="block text-sm font-semibold mb-1">Amount</label>
-                <input
-                  type="number"
-                  name="paymentAmount"
-                  className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-                  placeholder="Enter amount"
-                  value={form.paymentAmount}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              {/* Payment Mode */}
-              <div>
-                <label className="block text-sm font-semibold mb-1">Payment Mode</label>
-                <select
-                  name="paymentMode"
-                  className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-                  value={paymentMode}
-                  onChange={(e) => setPaymentMode(e.target.value)}
-                  required
-                >
-                  {PAYMENT_MODES.map((mode) => (
-                    <option key={mode} value={mode}>
-                      {mode}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {/* Payment Date */}
-              <div>
-                <label className="block text-sm font-semibold mb-1">Payment Date</label>
-                <input
-                  type="date"
-                  name="paymentDate"
-                  className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-                  value={form.paymentDate}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              {/* Receipt Number */}
-              <div>
-                <label className="block text-sm font-semibold mb-1">Receipt Number</label>
-                <input
-                  type="text"
-                  name="receiptNumber"
-                  className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-                  placeholder="Receipt number"
-                  value={form.receiptNumber}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              {/* Receipt Date */}
-              <div>
-                <label className="block text-sm font-semibold mb-1">Receipt Date</label>
-                <input
-                  type="date"
-                  name="receiptDate"
-                  className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-                  value={form.receiptDate}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              {/* Bank Name */}
-              <div>
-                <label className="block text-sm font-semibold mb-1">Bank Name</label>
-                <input
-                  type="text"
-                  name="bankName"
-                  className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-                  placeholder="Bank name"
-                  value={form.bankName}
-                  onChange={handleInputChange}
-                  required={paymentMode !== "Cash"}
-                  disabled={paymentMode === "Cash"}
-                />
-                <span className="text-xs text-gray-400">
-                  {paymentMode === "Cash" ? "Not required for Cash payments" : ""}
-                </span>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* If AutoCredits, show deal type */}
-        {paymentBy === "AutoCredits" && (
+        <div className="grid grid-cols-2 gap-6">
+          {/* Amount */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Payment Type</label>
-            <select
-              name="inhouseType"
+            <label className="block text-sm font-semibold mb-1">Amount</label>
+            <input
+              type="number"
+              name="paymentAmount"
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-              value={inhouseType}
-              onChange={(e) => setInhouseType(e.target.value)}
+              placeholder="Enter amount"
+              value={form.paymentAmount || ""}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          {/* Payment Mode */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Payment Mode</label>
+            <select
+              name="paymentMode"
+              className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
+              value={form.paymentMode || PAYMENT_MODES[0]}
+              onChange={handleInputChange}
+              required
             >
-              {INHOUSE_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
+              {PAYMENT_MODES.map((mode) => (
+                <option key={mode} value={mode}>
+                  {mode}
                 </option>
               ))}
             </select>
           </div>
-        )}
-
+          {/* Payment Date */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Payment Date</label>
+            <input
+              type="date"
+              name="paymentDate"
+              className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
+              value={form.paymentDate || ""}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          {/* Receipt Number */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Receipt Number</label>
+            <input
+              type="text"
+              name="receiptNumber"
+              className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
+              placeholder="Receipt number"
+              value={form.receiptNumber || ""}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          {/* Receipt Date */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Receipt Date</label>
+            <input
+              type="date"
+              name="receiptDate"
+              className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
+              value={form.receiptDate || ""}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          {/* Bank Name */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Bank Name</label>
+            <input
+              type="text"
+              name="bankName"
+              className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
+              placeholder="Bank name"
+              value={form.bankName || ""}
+              onChange={handleInputChange}
+              required={form.paymentMode !== "Cash"}
+              disabled={form.paymentMode === "Cash"}
+            />
+            <span className="text-xs text-gray-400">
+              {form.paymentMode === "Cash" ? "Not required for Cash payments" : ""}
+            </span>
+          </div>
+        </div>
         <button
           type="submit"
           className="w-full bg-black text-white py-3 rounded text-lg font-semibold hover:bg-gray-800 transition"

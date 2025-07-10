@@ -1,27 +1,28 @@
-import React, { useState } from "react";
+import React from "react";
+import { useFormContext } from "../contexts/FormContext";
+import { useNavigate } from "react-router-dom";
 
 const InsuranceCaseDetails = () => {
-  const [form, setForm] = useState({
-    buyerName: "",
-    mobileNumber: "",
-    buyerType: "Individual",
-    insuranceCategory: "",
-    source: "",
-    status: "",
-    followUp: "",
-    assignTo: "",
-    caseComment: "",
-  });
+  const { form, updateForm } = useFormContext();
+  const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    updateForm({ [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // You can add validation here if needed
+    navigate("/dashboard/insurance-case/Customer-Details");
   };
 
   return (
     <div className="max-w-full mx-auto p-6 bg-white rounded shadow">
       <h2 className="text-2xl font-semibold mb-2">Case Details</h2>
       <hr className="mb-6" />
-      <form>
+      <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
           {/* Buyer Name */}
           <div>
@@ -61,7 +62,7 @@ const InsuranceCaseDetails = () => {
                     ? "bg-black text-white"
                     : "bg-gray-100 text-gray-700"
                 }`}
-                onClick={() => setForm({ ...form, buyerType: "Individual" })}
+                onClick={() => updateForm({ buyerType: "Individual" })}
               >
                 Individual
               </button>
@@ -72,7 +73,7 @@ const InsuranceCaseDetails = () => {
                     ? "bg-black text-white"
                     : "bg-gray-100 text-gray-700"
                 }`}
-                onClick={() => setForm({ ...form, buyerType: "Company" })}
+                onClick={() => updateForm({ buyerType: "Company" })}
               >
                 Company
               </button>
@@ -86,7 +87,9 @@ const InsuranceCaseDetails = () => {
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               value={form.insuranceCategory}
               onChange={handleChange}
+              required
             >
+              <option value="">Select Category</option>
               <option value="New Car">New Car</option>
               <option value="Renewal">Renewal</option>
               <option value="Health">Health</option>
@@ -100,7 +103,9 @@ const InsuranceCaseDetails = () => {
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               value={form.source}
               onChange={handleChange}
+              required
             >
+              <option value="">Select Source</option>
               <option value="Dealer">Dealer</option>
               <option value="Online">Online</option>
               <option value="Referral">Referral</option>
@@ -114,7 +119,9 @@ const InsuranceCaseDetails = () => {
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
               value={form.status}
               onChange={handleChange}
+              required
             >
+              <option value="">Select Status</option>
               <option value="Follow up">Follow up</option>
               <option value="Closed">Closed</option>
               <option value="Pending">Pending</option>

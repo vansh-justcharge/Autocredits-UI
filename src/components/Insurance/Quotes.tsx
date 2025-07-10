@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Car, ShieldCheck, BadgePercent, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useFormContext } from "../../contexts/FormContext";
 
+// List of features
 const FEATURES_LIST = [
   'Cashless Garage',
   '24x7 Roadside Assistance',
@@ -14,7 +16,7 @@ const FEATURES_LIST = [
   'Key Replacement',
 ];
 
-const API_BASE = import.meta.env.VITE_BACKEND_API_BASE
+const API_BASE = import.meta.env.VITE_BACKEND_API_BASE;
 
 type ModalProps = {
   open: boolean;
@@ -58,9 +60,10 @@ type ModalState =
   | { type: 'delete'; quote: Quote }
   | { type: null; quote: null };
 
-const Quotes = () => {
+const Quotes: React.FC = () => {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [modal, setModal] = useState<ModalState>({ type: null, quote: null });
+  const { updateForm } = useFormContext();
   const [form, setForm] = useState({
     insurer: '',
     premium: '',
@@ -232,14 +235,21 @@ const Quotes = () => {
 
   // Handle Buy Now
   const handleBuyNow = (quote: Quote) => {
-    navigate('/dashboard/insurance-case/New-Policy-Details', {
-      state: {
-        newNcbDiscount: quote.ncb,
-        newInsuranceDuration: quote.quoteInsuranceDuration,
-        idv: quote.quoteIDV,
-        NewTotalPremium: quote.quoteTotalPremium,
-      },
+    updateForm({
+      insurer: quote.insurer,
+      premium: quote.premium,
+      coverage: quote.coverage,
+      ncb: quote.ncb,
+      features: quote.features,
+      quoteInsuranceDuration: quote.quoteInsuranceDuration,
+      quoteIDV: quote.quoteIDV,
+      quoteTotalPremium: quote.quoteTotalPremium,
+      newNcbDiscount: quote.ncb,
+      newInsuranceDuration: quote.quoteInsuranceDuration,
+      idv: quote.quoteIDV,
+      NewTotalPremium: quote.quoteTotalPremium,
     });
+    navigate('/dashboard/insurance-case/New-Policy-Details');
   };
 
   return (
@@ -267,6 +277,7 @@ const Quotes = () => {
                 <ShieldCheck className="w-5 h-5 text-green-500" />
                 <span className="font-semibold text-lg">{quote.insurer}</span>
               </div>
+              <hr className="border-t-2 border-red-500 my-4" />
               <div className="text-gray-600 mb-1">
                 <span className="font-medium">Coverage:</span> {quote.coverage}
               </div>
@@ -320,7 +331,7 @@ const Quotes = () => {
                 </span>
               </div>
               <button
-                className="bg-black text-white px-6 py-2 font-semibold hover:bg-violet-700 transition mt-2"
+                className="bg-red-600 rounded text-white px-6 py-2 font-semibold hover:bg-violet-700 transition mt-2"
                 onClick={() => handleBuyNow(quote)}
               >
                 Buy Now
@@ -401,7 +412,6 @@ const Quotes = () => {
               <option value="35%">35%</option>
               <option value="50%">50%</option>
             </select>
-
           </div>
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="add-duration">
@@ -528,11 +538,11 @@ const Quotes = () => {
             />
           </div>
           <div>
-           <label className="block text-sm font-medium mb-1" htmlFor="add-ncb">
+           <label className="block text-sm font-medium mb-1" htmlFor="edit-ncb">
               NCB
             </label>
             <select
-              id="add-ncb"
+              id="edit-ncb"
               name="ncb"
               className="w-full border rounded px-3 py-2"
               value={form.ncb}

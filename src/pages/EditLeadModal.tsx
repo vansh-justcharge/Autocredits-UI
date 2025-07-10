@@ -61,7 +61,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ isOpen, onClose, lead, on
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5000/api';
+  const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
   useEffect(() => {
     if (lead) {

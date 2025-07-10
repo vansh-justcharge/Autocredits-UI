@@ -1,23 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
+import { useFormContext } from "../../contexts/FormContext";
+import { useNavigate } from "react-router-dom";
 
 const NomineeReferenceDetails = () => {
-  const [form, setForm] = useState({
-    nomineeName: "",
-    nomineeAge: "",
-    nomineeRelation: "",
-    nomineeReferenceName: "",
-    nomineeReferenceNumber: "",
-  });
+  const { form, updateForm } = useFormContext();
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    updateForm({ [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission logic here
-    alert("Submitted!\n" + JSON.stringify(form, null, 2));
+    // Add validation if needed
+    navigate("/dashboard/insurance-case/Vehicle-Details"); // Change to your next route
   };
 
   return (
@@ -33,7 +30,7 @@ const NomineeReferenceDetails = () => {
               <input
                 type="text"
                 name="nomineeName"
-                value={form.nomineeName}
+                value={form.nomineeName || ""}
                 onChange={handleChange}
                 required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -45,7 +42,7 @@ const NomineeReferenceDetails = () => {
               <input
                 type="number"
                 name="nomineeAge"
-                value={form.nomineeAge}
+                value={form.nomineeAge || ""}
                 onChange={handleChange}
                 required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -58,7 +55,7 @@ const NomineeReferenceDetails = () => {
               <input
                 type="text"
                 name="nomineeRelation"
-                value={form.nomineeRelation}
+                value={form.nomineeRelation || ""}
                 required
                 onChange={handleChange}
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -76,7 +73,7 @@ const NomineeReferenceDetails = () => {
               <input
                 type="text"
                 name="nomineeReferenceName"
-                value={form.nomineeReferenceName}
+                value={form.nomineeReferenceName || ""}
                 onChange={handleChange}
                 required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
@@ -88,7 +85,7 @@ const NomineeReferenceDetails = () => {
               <input
                 type="tel"
                 name="nomineeReferenceNumber"
-                value={form.nomineeReferenceNumber}
+                value={form.nomineeReferenceNumber || ""}
                 onChange={handleChange}
                 required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"

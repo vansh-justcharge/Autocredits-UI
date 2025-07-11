@@ -1,31 +1,21 @@
 import React from "react";
 import { useFormContext } from "../../contexts/FormContext";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const PAYMENT_MODES = ["Cash", "Cheque", "Online"];
 
 const PaymentScreen = () => {
-  const { form, updateForm, resetForm } = useFormContext();
+  const { form, updateForm } = useFormContext();
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     updateForm({ [name]: value });
   };
 
-  const handlePaymentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handlePaymentSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Submitted!\n" + JSON.stringify(form, null, 2));
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/insurance/create`, form);
-      if (res.status === 200 || res.status === 201) {
-        alert("Payment and insurance details submitted successfully!");
-        resetForm();
-      } else {
-        alert("Submission failed. Please try again.");
-      }
-    } catch (error) {
-      alert("Error submitting details. Please check your connection or try again.");
-    }
+    navigate("/dashboard/insurance-case/Documents");
   };
 
   return (

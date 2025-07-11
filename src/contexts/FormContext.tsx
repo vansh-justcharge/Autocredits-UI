@@ -70,6 +70,7 @@ type FormData = {
   receiptNumber: string;
   receiptDate: string;
   bankName: string;
+  documentUrls: string[];
 };
 
 const defaultFormData: FormData = {
@@ -142,6 +143,7 @@ const defaultFormData: FormData = {
   receiptNumber: "",
   receiptDate: "",
   bankName: "",
+  documentUrls: [],
 };
 
 const FormContext = createContext<{

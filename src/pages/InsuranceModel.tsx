@@ -1,8 +1,135 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import axios from 'axios';
 
+// Helper functions
+const isImage = type => type && type.startsWith('image/');
+const isPDF = type => type === 'application/pdf';
+
+// DocumentSection: Only stores files, doesn't upload
+const DocumentSection = ({
+  documentUrls = [],
+  editable,
+  onChange,
+  pendingFiles,
+  setPendingFiles
+}) => {
+  const fileInputRef = useRef(null);
+  const [docs, setDocs] = useState(
+    (documentUrls || []).map(url =>
+      typeof url === 'string'
+        ? { url, type: url.endsWith('.pdf') ? 'application/pdf' : 'image/*' }
+        : url
+    )
+  );
+
+  useEffect(() => {
+    setDocs(
+      (documentUrls || []).map(url =>
+        typeof url === 'string'
+          ? { url, type: url.endsWith('.pdf') ? 'application/pdf' : 'image/*' }
+          : url
+      )
+    );
+  }, [documentUrls]);
+
+  // Only add to pendingFiles, do NOT upload here
+  const handleFileChange = e => {
+    const files = Array.from(e.target.files);
+    setPendingFiles(prev => [...prev, ...files]);
+    fileInputRef.current.value = "";
+  };
+
+  const removeDoc = idx => {
+    const updated = docs.filter((_, i) => i !== idx);
+    setDocs(updated);
+    onChange && onChange(updated);
+  };
+
+  const removePendingFile = idx => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-4">
+        {docs.length === 0 && pendingFiles.length === 0 && (
+          <div className="text-gray-500">No documents uploaded.</div>
+        )}
+        {docs.map((doc, idx) => (
+          <div key={idx} className="relative w-72 h-72 border rounded bg-gray-100 flex flex-col items-center justify-center overflow-hidden">
+            {isImage(doc.type) ? (
+              <img src={doc.url} alt={`doc-${idx}`} className="object-contain w-full h-full" />
+            ) : isPDF(doc.type) ? (
+              <iframe src={doc.url} title={`pdf-${idx}`} className="w-full h-full" />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full">
+                <span className="text-xs text-gray-500">Unknown File</span>
+              </div>
+            )}
+            {editable && (
+              <button
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs"
+                type="button"
+                onClick={() => removeDoc(idx)}
+                title="Delete"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        ))}
+        {/* Show pending files (not yet uploaded) */}
+        {pendingFiles.map((file, idx) => {
+            const previewUrl = URL.createObjectURL(file);
+            return (
+              <div key={`pending-${idx}`} className="relative w-92 h-72 border rounded bg-yellow-100 flex flex-col items-center justify-center overflow-hidden">
+                {isImage(file.type) ? (
+                  <img src={previewUrl} alt={file.name} className="object-contain w-full h-full" />
+                ) : isPDF(file.type) ? (
+                  <iframe src={previewUrl} title={file.name} className="w-full h-full" />
+                ) : (
+                  <span className="text-xs text-gray-700">{file.name}</span>
+                )}
+                
+                <button
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs"
+                  type="button"
+                  onClick={() => removePendingFile(idx)}
+                  title="Remove"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
+
+      </div>
+      {editable && (
+        <div className="mt-4">
+          <input
+            type="file"
+            accept="image/*,application/pdf"
+            multiple
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <button
+            type="button"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+          >
+            Add Document
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Main component
 const InsuranceModel = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -16,12 +143,17 @@ const InsuranceModel = () => {
   const [quoteInfoExpanded, setQuoteInfoExpanded] = useState(true);
   const [newPolicyExpanded, setNewPolicyExpanded] = useState(true);
   const [paymentInfoExpanded, setPaymentInfoExpanded] = useState(true);
+  const [documentInfoExpanded, setDocumentInfoExpanded] = useState(true);
 
   const [editForm, setEditForm] = useState(insuranceCase);
   const [saving, setSaving] = useState(false);
 
+  // Pending files for upload
+  const [pendingFiles, setPendingFiles] = useState([]);
+
   useEffect(() => {
     setEditForm(insuranceCase);
+    setPendingFiles([]); // clear pending files on case change
   }, [insuranceCase, mode]);
 
   useEffect(() => {
@@ -53,14 +185,47 @@ const InsuranceModel = () => {
     }));
   };
 
+  // For document URLs, handle as an array of objects {url, type}
+  const handleDocumentUrlsChange = (docs) => {
+    setEditForm(prev => ({
+      ...prev,
+      documentUrls: docs
+    }));
+  };
+
+  // Upload pending files, then save
   const handleSave = async () => {
     setSaving(true);
     try {
+      let uploadedDocs = [];
+      // Upload all pending files
+      if (pendingFiles.length > 0) {
+        for (const file of pendingFiles) {
+          const formData = new FormData();
+          formData.append("file", file);
+          const uploadRes = await axios.post(
+            "http://localhost:5000/api/upload/file",
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
+          const url = uploadRes.data.url;
+          const type = file.type;
+          uploadedDocs.push({ url, type });
+        }
+      }
+      // Combine with already existing docs
+      const finalDocs = [
+        ...(editForm.documentUrls || []).filter(doc => typeof doc === 'string' || doc.url),
+        ...uploadedDocs
+      ];
+      // Save to DB
       await axios.put(
         `${import.meta.env.VITE_BACKEND_API_URL}/insurance/update/${editForm.id}`,
-        editForm
+        {
+          ...editForm,
+          documentUrls: finalDocs.map(doc => typeof doc === 'string' ? doc : doc.url),
+        }
       );
-
       alert('Insurance case updated successfully!');
       navigate(-1);
     } catch (err) {
@@ -69,24 +234,20 @@ const InsuranceModel = () => {
     setSaving(false);
   };
 
-  // Helper for date fields
-  const dateInput = (val, onChange) => (
-    <input
-      type="date"
-      className="border rounded px-2 py-1 w-full"
-      value={val ? val.slice(0, 10) : ''}
-      onChange={e => onChange(e.target.value)}
-    />
-  );
-
   // DropDown Option
   const DROPDOWN_OPTIONS = {
-    buyerTypes: ['Individual', 'Corporate'],
-    genders: ['Male', 'Female', 'Other'],
-    maritalStatuses: ['Single', 'Married', 'Divorced', 'Widowed'],
-    paymentModes: ['Cash', 'Cheque', 'Online Transfer', 'UPI'],
+    buyerTypes: ['Individual', 'Company'],
+    insuranceCategory: ["New Car","Renewal","Policy Already Expired","Used Car"],
+    source: ["Dealer","Online","Referral"],
+    status: ["Follow up","Closed","Pending"],
+    genders: ['Male', 'Female'],
+    maritalStatuses: ['Single', 'Married'],
+    inspectionStatus:["Pending","Complete"],
+    ncbDisCount:["0%","20%","25%","35","50%"],
+    policyIssued:["Yes","No"],
+    policyType:["Comprehensive","Third Party"],
+    paymentModes: ['Cash', 'Cheque', 'Online'],
   };
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,56 +263,13 @@ const InsuranceModel = () => {
           </svg>
         </button>
 
-        {/* Application Details */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Insurance Application Details</h2>
-          </div>
-          <div className="bg-gray-100">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left">
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Phone</th>
-                  <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Address</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="bg-gray-200">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {mode === 'edit'
-                      ? <Input value={editForm?.buyerName} onChange={val => handleRootChange('buyerName', val)} />
-                      : insuranceCase.buyerName || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {mode === 'edit'
-                      ? <Input value={editForm?.email} onChange={val => handleRootChange('email', val)} />
-                      : insuranceCase.email || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {mode === 'edit'
-                      ? <Input value={editForm?.mobileNumber} onChange={val => handleRootChange('mobileNumber', val)} />
-                      : insuranceCase.mobileNumber || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {mode === 'edit'
-                      ? <Input value={editForm?.address} onChange={val => handleRootChange('address', val)} />
-                      : insuranceCase.address || 'N/A'}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* User Basic Information */}
+       {/* User Basic Information */}
         <CollapsibleSection expanded={userInfoExpanded} onToggle={() => setUserInfoExpanded(e => !e)} title="User Basic Information">
           <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-            <EditableField label="Buyer Type" value={editForm?.buyerType} editable={mode === 'edit'} onChange={val => handleRootChange('buyerType', val)} />
-            <EditableField label="Insurance Category" value={editForm?.insuranceCategory} editable={mode === 'edit'} onChange={val => handleRootChange('insuranceCategory', val)} />
-            <EditableField label="Source" value={editForm?.source} editable={mode === 'edit'} onChange={val => handleRootChange('source', val)} />
-            <EditableField label="Status" value={editForm?.status} editable={mode === 'edit'} onChange={val => handleRootChange('status', val)} />
+            <EditableField label="Buyer Type" value={editForm?.buyerType} editable={mode === 'edit'} onChange={val => handleRootChange('buyerType', val)} options={DROPDOWN_OPTIONS.buyerTypes} />
+            <EditableField label="Insurance Category" value={editForm?.insuranceCategory} editable={mode === 'edit'} onChange={val => handleRootChange('insuranceCategory', val)} options={DROPDOWN_OPTIONS.insuranceCategory} />
+            <EditableField label="Source" value={editForm?.source} editable={mode === 'edit'} onChange={val => handleRootChange('source', val)} options={DROPDOWN_OPTIONS.source} />
+            <EditableField label="Status" value={editForm?.status} editable={mode === 'edit'} onChange={val => handleRootChange('status', val)} options={DROPDOWN_OPTIONS.status} />
             <EditableField label="Follow Up" value={editForm?.followUp} editable={mode === 'edit'} onChange={val => handleRootChange('followUp', val)} type="date" />
             <EditableField label="Assign To" value={editForm?.assignTo} editable={mode === 'edit'} onChange={val => handleRootChange('assignTo', val)} />
             <EditableField label="Case Comment" value={editForm?.caseComment} editable={mode === 'edit'} onChange={val => handleRootChange('caseComment', val)} />
@@ -164,8 +282,7 @@ const InsuranceModel = () => {
               onChange={val => handleRootChange('gender', val)}
               options={DROPDOWN_OPTIONS.genders}
             />
-
-            <EditableField label="Marital Status" value={editForm?.maritalStatus} editable={mode === 'edit'} onChange={val => handleRootChange('maritalStatus', val)} />
+            <EditableField label="Marital Status" value={editForm?.maritalStatus} editable={mode === 'edit'} onChange={val => handleRootChange('maritalStatus', val)} options={DROPDOWN_OPTIONS.maritalStatuses} />
             <EditableField label="DOB" value={editForm?.dob} editable={mode === 'edit'} onChange={val => handleRootChange('dob', val)} type="date" />
             <EditableField label="Occupation" value={editForm?.occupation} editable={mode === 'edit'} onChange={val => handleRootChange('occupation', val)} />
             <EditableField label="Annual Income" value={editForm?.annualIncome} editable={mode === 'edit'} onChange={val => handleRootChange('annualIncome', val)} />
@@ -197,7 +314,7 @@ const InsuranceModel = () => {
             <EditableField label="Chassi Number" value={editForm?.chassiNumber} editable={mode === 'edit'} onChange={val => handleRootChange('chassiNumber', val)} />
             <EditableField label="Make Month/Year" value={editForm?.makeMonthYear} editable={mode === 'edit'} onChange={val => handleRootChange('makeMonthYear', val)} />
             <EditableField label="Register Month/Year" value={editForm?.registerMonthYear} editable={mode === 'edit'} onChange={val => handleRootChange('registerMonthYear', val)} />
-            <EditableField label="Inspection Status" value={editForm?.inspectionStatus} editable={mode === 'edit'} onChange={val => handleRootChange('inspectionStatus', val)} />
+            <EditableField label="Inspection Status" value={editForm?.inspectionStatus} editable={mode === 'edit'} onChange={val => handleRootChange('inspectionStatus', val)} options={DROPDOWN_OPTIONS.inspectionStatus} />
             <EditableField label="Inspection Reference No" value={editForm?.inspectionReferenceNo} editable={mode === 'edit'} onChange={val => handleRootChange('inspectionReferenceNo', val)} />
             <EditableField label="Inspection Comment" value={editForm?.inseptionComment} editable={mode === 'edit'} onChange={val => handleRootChange('inseptionComment', val)} />
           </div>
@@ -212,7 +329,7 @@ const InsuranceModel = () => {
             <EditableField label="Policy Number" value={editForm?.policyNumber} editable={mode === 'edit'} onChange={val => handleRootChange('policyNumber', val)} />
             <EditableField label="Issue Date" value={editForm?.issueDate} editable={mode === 'edit'} onChange={val => handleRootChange('issueDate', val)} type="date" />
             <EditableField label="Due Date" value={editForm?.dueDate} editable={mode === 'edit'} onChange={val => handleRootChange('dueDate', val)} type="date" />
-            <EditableField label="NCB Discount" value={editForm?.ncbDiscount} editable={mode === 'edit'} onChange={val => handleRootChange('ncbDiscount', val)} />
+            <EditableField label="NCB Discount" value={editForm?.ncbDiscount} editable={mode === 'edit'} onChange={val => handleRootChange('ncbDiscount', val)} options={DROPDOWN_OPTIONS.ncbDisCount} />
             <EditableField label="Claim Last Year" value={editForm?.claimLastYear} editable={mode === 'edit'} onChange={val => handleRootChange('claimLastYear', val)} />
           </div>
         </CollapsibleSection>
@@ -234,7 +351,7 @@ const InsuranceModel = () => {
         {/* New Policy Details */}
         <CollapsibleSection expanded={newPolicyExpanded} onToggle={() => setNewPolicyExpanded(e => !e)} title="New Policy Details">
           <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-            <EditableField label="Policy Issued" value={editForm?.policyIssued} editable={mode === 'edit'} onChange={val => handleRootChange('policyIssued', val)} />
+            <EditableField label="Policy Issued" value={editForm?.policyIssued} editable={mode === 'edit'} onChange={val => handleRootChange('policyIssued', val)} options={DROPDOWN_OPTIONS.policyIssued} />
             <EditableField label="New Insurance Company" value={editForm?.newInsuranceCompany} editable={mode === 'edit'} onChange={val => handleRootChange('newInsuranceCompany', val)} />
             <EditableField label="New Branch" value={editForm?.newBranch} editable={mode === 'edit'} onChange={val => handleRootChange('newBranch', val)} />
             <EditableField label="New Policy Type" value={editForm?.newPolicyType} editable={mode === 'edit'} onChange={val => handleRootChange('newPolicyType', val)} />
@@ -256,8 +373,19 @@ const InsuranceModel = () => {
             <EditableField label="Receipt Number" value={editForm?.receiptNumber} editable={mode === 'edit'} onChange={val => handleRootChange('receiptNumber', val)} />
             <EditableField label="Receipt Date" value={editForm?.receiptDate} editable={mode === 'edit'} onChange={val => handleRootChange('receiptDate', val)} type="date" />
             <EditableField label="Bank Name" value={editForm?.bankName} editable={mode === 'edit'} onChange={val => handleRootChange('bankName', val)} />
-            <EditableField label="Payment Mode" value={editForm?.paymentMode || ''} editable={mode === 'edit'} onChange={val => handleRootChange('paymentMode', val)} />
+            <EditableField label="Payment Mode" value={editForm?.paymentMode || ''} editable={mode === 'edit'} onChange={val => handleRootChange('paymentMode', val)} options={DROPDOWN_OPTIONS.paymentModes} />
           </div>
+        </CollapsibleSection>
+
+        {/* Document Details */}
+        <CollapsibleSection expanded={documentInfoExpanded} onToggle={() => setDocumentInfoExpanded(e => !e)} title="Documents">
+          <DocumentSection
+            documentUrls={mode === 'edit' ? editForm?.documentUrls || [] : insuranceCase?.documentUrls || []}
+            editable={mode === 'edit'}
+            onChange={handleDocumentUrlsChange}
+            pendingFiles={pendingFiles}
+            setPendingFiles={setPendingFiles}
+          />
         </CollapsibleSection>
 
         {/* Save/Cancel Buttons in Edit Mode */}
@@ -301,14 +429,12 @@ const EditableField = ({ label, value, editable, onChange, type = 'text', option
   return (
     <div>
       <label className="block font-semibold mb-1">{label}</label>
-
       {options ? (
         <select
           className="border rounded px-2 py-1 w-full"
           value={value || ''}
           onChange={e => onChange(e.target.value)}
         >
-          <option value="">Select {label}</option>
           {options.map(opt => (
             <option key={opt} value={opt}>
               {opt}
@@ -326,10 +452,5 @@ const EditableField = ({ label, value, editable, onChange, type = 'text', option
     </div>
   );
 };
-
-
-const Input = ({ value, onChange }) => (
-  <input className="border rounded px-2 py-1 w-full" value={value || ''} onChange={e => onChange(e.target.value)} />
-);
 
 export default InsuranceModel;

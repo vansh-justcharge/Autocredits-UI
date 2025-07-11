@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Car, ShieldCheck, BadgePercent, Plus } from 'lucide-react';
+import { Car, ShieldCheck, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFormContext } from "../../contexts/FormContext";
 
@@ -51,6 +51,7 @@ type Quote = {
   quoteInsuranceDuration: string;
   quoteIDV: string;
   quoteTotalPremium: string;
+  pdfUrl?: string;
 };
 
 type ModalState =
@@ -64,6 +65,8 @@ const Quotes: React.FC = () => {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [modal, setModal] = useState<ModalState>({ type: null, quote: null });
   const { updateForm } = useFormContext();
+  const [selectedQuotes, setSelectedQuotes] = useState<number[]>([]);
+  const [shareMode, setShareMode] = useState(false);
   const [form, setForm] = useState({
     insurer: '',
     premium: '',
@@ -244,6 +247,7 @@ const Quotes: React.FC = () => {
       quoteInsuranceDuration: quote.quoteInsuranceDuration,
       quoteIDV: quote.quoteIDV,
       quoteTotalPremium: quote.quoteTotalPremium,
+      newInsuranceCompany: quote.insurer,
       newNcbDiscount: quote.ncb,
       newInsuranceDuration: quote.quoteInsuranceDuration,
       idv: quote.quoteIDV,
@@ -252,94 +256,191 @@ const Quotes: React.FC = () => {
     navigate('/dashboard/insurance-case/New-Policy-Details');
   };
 
+  // Handle Share Quotes button
+  const handleShareQuotes = () => {
+    setShareMode((prev) => {
+      if (prev) setSelectedQuotes([]);
+      return !prev;
+    });
+  };
+
+  // Handle Copy Links
+  const handleCopyLinks = () => {
+    const links = quotes
+      .filter((q) => selectedQuotes.includes(q.id))
+      .map((q) => q.pdfUrl)
+      .filter(Boolean)
+      .join('\n');
+    if (links) {
+      navigator.clipboard.writeText(links);
+      alert('PDF links copied to clipboard!');
+    } else {
+      alert('No quotes selected or missing PDF links.');
+    }
+  };
+
   return (
     <div className="max-w-full mx-auto p-6 mt-10">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
           <Car className="w-8 h-8 text-black" /> Car Insurance Quotes
         </h1>
-        <button
-          className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded font-semibold transition"
-          onClick={openAdd}
-        >
-          <Plus className="w-5 h-5" /> Add Quote
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex gap-2">
+            <button
+              className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded font-semibold transition"
+              onClick={openAdd}
+              disabled={shareMode}
+            >
+              <Plus className="w-5 h-5" /> Add Quote
+            </button>
+            <button
+              className={`flex items-center gap-2 px-4 py-2 rounded font-semibold transition ${shareMode ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'}`}
+              onClick={handleShareQuotes}
+            >
+               {shareMode ? 'Cancel Share' : 'Share Quotes'}
+            </button>
+          </div>
+          {shareMode && (
+            <button
+              className="mt-2 bg-green-600 text-white px-4 py-2 rounded font-semibold"
+              onClick={handleCopyLinks}
+              disabled={selectedQuotes.length === 0}
+            >
+              Copy Selected Links
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {quotes.map((quote) => (
-          <div
-            key={quote.id}
-            className="flex flex-col justify-between bg-white rounded-xl shadow py-5 px-6 border border-gray-100 hover:shadow-lg transition"
-          >
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck className="w-5 h-5 text-green-500" />
-                <span className="font-semibold text-lg">{quote.insurer}</span>
-              </div>
-              <hr className="border-t-2 border-red-500 my-4" />
-              <div className="text-gray-600 mb-1">
-                <span className="font-medium">Coverage:</span> {quote.coverage}
-              </div>
-              <div className="text-gray-600 mb-1 flex items-center">
-                <BadgePercent className="inline w-4 h-4 mr-1 text-blue-500" />
-                <span className="font-medium">NCB:</span> {quote.ncb}
-              </div>
-              <div className="text-gray-600 mb-1">
-                <span className="font-medium">Duration:</span> {quote.quoteInsuranceDuration}
-              </div>
-              <div className="text-gray-600 mb-1">
-                <span className="font-medium">IDV:</span> {quote.quoteIDV}
-              </div>
-              <div className="text-gray-600 mb-1">
-                <span className="font-medium">Total Premium:</span> {quote.quoteTotalPremium}
-              </div>
-              <ul className="text-sm text-gray-500 list-disc ml-6 mt-1">
-                {quote.features.map((f, idx) => (
-                  <li key={idx}>{f}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex flex-col items-end gap-2 mt-4">
-              <div className="flex gap-2">
-                <button
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors"
-                  onClick={() => openView(quote)}
-                  title="View"
-                >
-                  View
-                </button>
-                <button
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs transition-colors"
-                  onClick={() => openEdit(quote)}
-                  title="Edit"
-                >
-                  Edit
-                </button>
-                <button
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
-                  onClick={() => openDelete(quote)}
-                  title="Delete"
-                >
-                  Delete
-                </button>
-              </div>
-              <div className="text-2xl font-bold text-black">
-                ₹{quote.premium}
-                <span className="text-base font-normal text-gray-500 ml-1">
-                  /year
-                </span>
-              </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+  {quotes.map((quote) => (
+    <div
+      key={quote.id}
+      className="relative flex flex-col bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition group overflow-hidden"
+    >
+      {/* Checkbox for share mode */}
+      {shareMode && (
+        <div className="absolute top-4 right-5 z-10">
+          <input
+            type="checkbox"
+            checked={selectedQuotes.includes(quote.id)}
+            onChange={() => {
+              setSelectedQuotes((prev) =>
+                prev.includes(quote.id)
+                  ? prev.filter((id) => id !== quote.id)
+                  : [...prev, quote.id]
+              );
+            }}
+            className="w-5 h-5 accent-violet-600 border-gray-300"
+          />
+        </div>
+      )}
+
+      {/* Card Header */}
+      <div className="flex items-center gap-3 px-6 py-4  rounded">
+        <ShieldCheck className="w-6 h-6 text-red-700" />
+        <span className="text-red-black text-xl font-semibold tracking-wide">{quote.insurer}</span>
+      </div>
+      
+      <hr className="border-t-2 border-red-500 my-4" />
+      {/* Card Content */}
+      <div className="px-6 py-2 flex-1 flex flex-col">
+        <div className="flex flex-col gap-1 mb-2">
+          <div className="flex items-center text-gray-700">
+            <span className="font-medium w-32">Coverage:</span>
+            <span className="ml-2">{quote.coverage}</span>
+          </div>
+          <div className="flex items-center text-gray-700">
+            <span className="font-medium w-32">NCB:</span>
+            <span className="ml-2">{quote.ncb}</span>
+          </div>
+          <div className="flex items-center text-gray-700">
+            <span className="font-medium w-32">Duration:</span>
+            <span className="ml-2">{quote.quoteInsuranceDuration}</span>
+          </div>
+          <div className="flex items-center text-gray-700">
+            <span className="font-medium w-32">IDV:</span>
+            <span className="ml-2">{quote.quoteIDV}</span>
+          </div>
+          <div className="flex items-center text-gray-700">
+            <span className="font-medium w-32">Total Premium:</span>
+            <span className="ml-2">{quote.quoteTotalPremium}</span>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="mt-2">
+          <span className="block text-sm font-semibold text-violet-700 mb-1">Features:</span>
+          <ul className="text-sm text-gray-600 space-y-1 ml-2">
+            {quote.features.map((f, idx) => (
+              <li key={idx} className="flex items-center">
+                <span className="inline-block w-2 h-2 rounded-full bg-violet-500 mr-2"></span>
+                {f}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Card Footer */}
+      <div className="px-6 pb-5 pt-3 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <span className="inline-block bg-violet-100 text-violet-700 px-3 py-1 rounded-full font-bold text-lg shadow">
+            ₹{quote.premium}
+            <span className="text-xs font-normal ml-1 text-gray-500">/year</span>
+          </span>
+          {!shareMode && (
+            <div className="flex gap-2">
               <button
-                className="bg-red-600 rounded text-white px-6 py-2 font-semibold hover:bg-violet-700 transition mt-2"
-                onClick={() => handleBuyNow(quote)}
+                className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-semibold shadow transition"
+                onClick={() => openView(quote)}
+                title="View"
               >
-                Buy Now
+                View
+              </button>
+              <button
+                className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-semibold shadow transition"
+                onClick={() => openEdit(quote)}
+                title="Edit"
+              >
+                Edit
+              </button>
+              <button
+                className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-semibold shadow transition"
+                onClick={() => openDelete(quote)}
+                title="Delete"
+              >
+                Delete
               </button>
             </div>
-          </div>
-        ))}
+          )}
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          {quote.pdfUrl && !shareMode && (
+            <a
+              href={quote.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm bg-blue-600 px-4 py-2 font-semibold  text-white rounded shadow hover:bg-blue-700 transition"
+            >
+              View PDF
+            </a>
+          )}
+          {!shareMode && (
+            <button
+              className="bg-gradient-to-r from-red-700 to-red-600 rounded text-white px-6 py-2 font-semibold shadow  transition"
+              onClick={() => handleBuyNow(quote)}
+            >
+              Buy Now
+            </button>
+          )}
+        </div>
       </div>
+    </div>
+  ))}
+</div>
+
 
       <div className="mt-10 text-center text-gray-500 text-sm">
         <span>
@@ -395,7 +496,7 @@ const Quotes: React.FC = () => {
             />
           </div>
           <div>
-           <label className="block text-sm font-medium mb-1" htmlFor="add-ncb">
+            <label className="block text-sm font-medium mb-1" htmlFor="add-ncb">
               NCB
             </label>
             <select
@@ -538,7 +639,7 @@ const Quotes: React.FC = () => {
             />
           </div>
           <div>
-           <label className="block text-sm font-medium mb-1" htmlFor="edit-ncb">
+            <label className="block text-sm font-medium mb-1" htmlFor="edit-ncb">
               NCB
             </label>
             <select

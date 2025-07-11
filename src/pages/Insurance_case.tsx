@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
-import InsuranceOverview from "./InsuranceOverview";
+import InsuranceOverview from "../components/Insurance/InsuranceOverview";
 import CustomerDetails from "../components/Insurance/CustomerDetails";
 import NomineeReferenceDetails from "../components/Insurance/NomineeDetails";
 import VehicleDetails from "../components/Insurance/VehicleDetails";

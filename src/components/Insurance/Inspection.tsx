@@ -32,7 +32,6 @@ const Inspection = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="">Select Status</option>
                 <option value="Pending">Pending</option>
                 <option value="Complete">Complete</option>
               </select>

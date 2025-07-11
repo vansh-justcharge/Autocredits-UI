@@ -83,20 +83,14 @@ const PAGE_SIZE = 10;
 const SOURCE_OPTIONS = [
   "Source",
   "Online",
-  "Direct Sales",
-  "Referral",
-  "Broker"
+  "Dealer",
+  "Referral"
 ];
 const STATUS_OPTIONS = [
   "Status",
-  "New",
   "Pending",
   "Follow up",
-  "Approved",
-  "Issued",
-  "Rejected",
-  "Expired",
-  "Cancelled"
+  "Closed"
 ];
 
 const InsurancePage: React.FC = () => {

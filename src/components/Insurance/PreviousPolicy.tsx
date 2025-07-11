@@ -107,7 +107,6 @@ const PreviousPolicyDetails = () => {
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700 pr-10"
               required
             >
-              <option value="">Select NCB</option>
               <option value="0">0%</option>
               <option value="20">20%</option>
               <option value="25">25%</option>

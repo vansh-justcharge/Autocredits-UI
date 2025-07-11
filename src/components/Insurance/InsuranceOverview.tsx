@@ -1,5 +1,5 @@
 import React from "react";
-import { useFormContext } from "../contexts/FormContext";
+import { useFormContext } from "../../contexts/FormContext";
 import { useNavigate } from "react-router-dom";
 
 const InsuranceCaseDetails = () => {
@@ -14,7 +14,6 @@ const InsuranceCaseDetails = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // You can add validation here if needed
     navigate("/dashboard/insurance-case/Customer-Details");
   };
 
@@ -89,10 +88,10 @@ const InsuranceCaseDetails = () => {
               onChange={handleChange}
               required
             >
-              <option value="">Select Category</option>
               <option value="New Car">New Car</option>
               <option value="Renewal">Renewal</option>
-              <option value="Health">Health</option>
+              <option value="Policy Already Expired">Policy Already Expired</option>
+              <option value="Used Car">Used Car</option>
             </select>
           </div>
           {/* Source */}
@@ -105,7 +104,6 @@ const InsuranceCaseDetails = () => {
               onChange={handleChange}
               required
             >
-              <option value="">Select Source</option>
               <option value="Dealer">Dealer</option>
               <option value="Online">Online</option>
               <option value="Referral">Referral</option>
@@ -121,7 +119,6 @@ const InsuranceCaseDetails = () => {
               onChange={handleChange}
               required
             >
-              <option value="">Select Status</option>
               <option value="Follow up">Follow up</option>
               <option value="Closed">Closed</option>
               <option value="Pending">Pending</option>

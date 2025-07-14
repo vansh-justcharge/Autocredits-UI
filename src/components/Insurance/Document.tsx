@@ -37,7 +37,7 @@ const DocumentUploadScreen = () => {
         formData.append("file", file);
 
         const res = await axios.post(
-          "http://localhost:5000/api/upload/file",
+          `${import.meta.env.VITE_BACKEND_API_URL}/upload/file`,
           formData,
           {
             headers: {
@@ -45,6 +45,7 @@ const DocumentUploadScreen = () => {
             },
           }
         );
+
 
         urls.push(res.data.url);
       }

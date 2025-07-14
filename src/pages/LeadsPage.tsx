@@ -18,7 +18,7 @@ import React, { useEffect, useState } from "react";
 import { Download, X, Plus } from "lucide-react";
 import Navbar from "./Navbar";
 
-const API_URL = "http://localhost:5000/api/leads";
+const API_URL = `${import.meta.env.VITE_BACKEND_API_URL}/leads`;
 
 const LeadsPage: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);

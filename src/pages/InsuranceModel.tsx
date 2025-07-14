@@ -190,10 +190,15 @@ const InsuranceModel = () => {
           const formData = new FormData();
           formData.append("file", file);
           const uploadRes = await axios.post(
-            "http://localhost:5000/api/upload/file",
+            `${import.meta.env.VITE_BACKEND_API_URL}/upload/file`,
             formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
           );
+
           uploadedUrls.push(uploadRes.data.url);
         }
       }

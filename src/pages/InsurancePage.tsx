@@ -2,6 +2,81 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
+import { useFormContext } from '../contexts/FormContext';
+
+type FormData = {
+  leadId?: number; // Added leadId to link insurance with a lead
+  buyerName: string;
+  mobileNumber: string;
+  buyerType: string;
+  insuranceCategory: string;
+  source: string;
+  status: string;
+  followUp: string;
+  assignTo: string;
+  caseComment: string;
+  email: string;
+  address: string;
+  city: string;
+  pin: string;
+  gender: string;
+  maritalStatus: string;
+  dob: string;
+  occupation: string;
+  annualIncome: string;
+  pan: string;
+  adhar: string;
+  gst: string;
+  nomineeName: string;
+  nomineeAge: string;
+  nomineeRelation: string;
+  nomineeReferenceName: string;
+  nomineeReferenceNumber: string;
+  registerNumber: string;
+  make: string;
+  model: string;
+  variant: string;
+  engineNumber: string;
+  chassiNumber: string;
+  makeMonthYear: string;
+  registerMonthYear: string;
+  inspectionStatus: string;
+  inspectionReferenceNo: string;
+  inseptionComment: string;
+  insuranceCompany: string;
+  branch: string;
+  policyType: string;
+  policyNumber: string;
+  issueDate: string;
+  dueDate: string;
+  ncbDiscount: string;
+  claimLastYear: string;
+  insurer: string;
+  premium: string;
+  coverage: string;
+  ncb: string;
+  quoteInsuranceDuration: string;
+  quoteIDV: string;
+  quoteTotalPremium: string;
+  features: string[];
+  policyIssued: string;
+  newInsuranceCompany: string;
+  newBranch: string;
+  newPolicyType: string;
+  newPolicyNumber: string;
+  newIssueDate: string;
+  newDueDate: string;
+  newNcbDiscount: string;
+  newInsuranceDuration: string;
+  idv: string;
+  NewTotalPremium: string;
+  paymentAmount: string;
+  paymentDate: string;
+  receiptNumber: string;
+  receiptDate: string;
+  bankName: string;
+  documentUrls: string[];
+};
 
 interface InsuranceCase {
   id: number;
@@ -79,6 +154,32 @@ interface InsuranceCase {
   updatedAt: string;
 }
 
+interface Lead {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  source: string;
+  service: string;
+  status: string;
+  assignedTo: string;
+  lastContact: string;
+  additionalDetails: string;
+  createdAt?: string;
+}
+
+// Map Lead to FormData including leadId for linking
+function mapLeadToFormData(lead: Lead): Partial<FormData> {
+  return {
+    leadId: lead.id,
+    buyerName: `${lead.firstName} ${lead.lastName}`,
+    mobileNumber: lead.phone,
+    email: lead.email,
+    source: lead.source,
+  };
+}
+
 const PAGE_SIZE = 10;
 const SOURCE_OPTIONS = [
   "Source",
@@ -89,9 +190,10 @@ const SOURCE_OPTIONS = [
 const STATUS_OPTIONS = [
   "Status",
   "Pending",
-  "Follow up",
-  "Closed"
+  "Completed"
 ];
+
+type TableRow = { type: 'case', data: InsuranceCase } | { type: 'lead', data: Lead };
 
 const InsurancePage: React.FC = () => {
   const navigate = useNavigate();
@@ -106,49 +208,89 @@ const InsurancePage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
-
+  const { updateForm, resetForm } = useFormContext();
   const [allCases, setAllCases] = useState<InsuranceCase[]>([]);
+  const [insuranceLeads, setInsuranceLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCases = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/insurance/get`);
-        setAllCases(res.data || []);
+        const casesRes = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/insurance/get`);
+        setAllCases(casesRes.data || []);
+        const leadsRes = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/leads?service=Insurance`);
+        setInsuranceLeads(leadsRes.data || []);
       } catch (err) {
         setAllCases([]);
+        setInsuranceLeads([]);
       }
       setLoading(false);
     };
-    fetchCases();
+    fetchData();
   }, []);
+  
+  const insuranceCaseLeadIds = new Set(allCases.map(c => c.leadId));
+  const insuranceLeadsOnly = insuranceLeads.filter(
+    lead => !insuranceCaseLeadIds.has(lead.id)
+  );
 
-  const filteredCases = allCases.filter((c) => {
-    const dealerSearch = filters.dealer.trim().toLowerCase();
-    if (dealerSearch) {
-      if (
-        !(c.buyerName?.toLowerCase().includes(dealerSearch) ||
-          c.mobileNumber?.toLowerCase().includes(dealerSearch))
-      ) return false;
+
+  // Merge for display
+  const mergedRows: TableRow[] = [
+    ...allCases.map(c => ({ type: 'case', data: c })),
+    ...insuranceLeadsOnly.map(l => ({ type: 'lead', data: l }))
+  ];
+
+  // Filtering logic for both cases and leads
+  const filteredRows = mergedRows.filter((row) => {
+    if (row.type === 'case') {
+      const c = row.data;
+      const dealerSearch = filters.dealer.trim().toLowerCase();
+      if (dealerSearch) {
+        if (
+          !(c.buyerName?.toLowerCase().includes(dealerSearch) ||
+            c.mobileNumber?.toLowerCase().includes(dealerSearch))
+        ) return false;
+      }
+      if (filters.source !== 'Source' && c.source !== filters.source) return false;
+      if (filters.status !== 'Status' && c.status !== filters.status) return false;
+      if (filters.fromDate && filters.toDate) {
+        const created = c.createdAt?.slice(0, 10);
+        if (created < filters.fromDate || created > filters.toDate) return false;
+      } else if (filters.fromDate) {
+        if ((c.createdAt?.slice(0, 10) || '') < filters.fromDate) return false;
+      } else if (filters.toDate) {
+        if ((c.createdAt?.slice(0, 10) || '') > filters.toDate) return false;
+      }
+      return true;
+    } else {
+      const l = row.data;
+      const dealerSearch = filters.dealer.trim().toLowerCase();
+      if (dealerSearch) {
+        if (
+          !((`${l.firstName} ${l.lastName}`)?.toLowerCase().includes(dealerSearch) ||
+            l.phone?.toLowerCase().includes(dealerSearch))
+        ) return false;
+      }
+      if (filters.source !== 'Source' && l.source !== filters.source) return false;
+      if (filters.fromDate && filters.toDate) {
+        const created = l.createdAt?.slice(0, 10);
+        if (created && (created < filters.fromDate || created > filters.toDate)) return false;
+      } else if (filters.fromDate) {
+        if ((l.createdAt?.slice(0, 10) || '') < filters.fromDate) return false;
+      } else if (filters.toDate) {
+        if ((l.createdAt?.slice(0, 10) || '') > filters.toDate) return false;
+      }
+      return true;
     }
-    if (filters.source !== 'Source' && c.source !== filters.source) return false;
-    if (filters.status !== 'Status' && c.status !== filters.status) return false;
-    if (filters.fromDate && filters.toDate) {
-      const created = c.createdAt?.slice(0, 10);
-      if (created < filters.fromDate || created > filters.toDate) return false;
-    } else if (filters.fromDate) {
-      if ((c.createdAt?.slice(0, 10) || '') < filters.fromDate) return false;
-    } else if (filters.toDate) {
-      if ((c.createdAt?.slice(0, 10) || '') > filters.toDate) return false;
-    }
-    return true;
   });
 
-  const total = filteredCases.length;
+  const total = filteredRows.length;
   const pageCount = Math.ceil(total / PAGE_SIZE);
-  const paginatedCases = filteredCases.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const paginatedRows = filteredRows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
+  // Handlers for filters and pagination
   const handleDealerSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters({ ...filters, dealer: e.target.value });
     setPage(0);
@@ -170,6 +312,7 @@ const InsurancePage: React.FC = () => {
     setPage(0);
   };
 
+  // Navigation handlers for insurance cases
   const handleView = (caseItem: InsuranceCase) => {
     navigate('/dashboard/insurance/model', { state: { insuranceCase: caseItem, mode: 'view' } });
   };
@@ -178,6 +321,7 @@ const InsurancePage: React.FC = () => {
     navigate('/dashboard/insurance/model', { state: { insuranceCase: caseItem, mode: 'edit' } });
   };
 
+  // Delete handlers
   const handleDelete = (indexOnPage: number) => {
     setDeleteIndex(indexOnPage);
     setShowDeleteModal(true);
@@ -185,12 +329,13 @@ const InsurancePage: React.FC = () => {
 
   const confirmDelete = async () => {
     if (deleteIndex === null) return;
-    const caseToDelete = paginatedCases[deleteIndex];
-    if (!caseToDelete) {
+    const row = paginatedRows[deleteIndex];
+    if (!row || row.type !== 'case') {
       setShowDeleteModal(false);
       setDeleteIndex(null);
       return;
     }
+    const caseToDelete = row.data;
     try {
       await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/insurance/delete/${caseToDelete.id}`);
       const globalIndex = allCases.findIndex((item) => item.id === caseToDelete.id);
@@ -209,6 +354,13 @@ const InsurancePage: React.FC = () => {
       setShowDeleteModal(false);
       setDeleteIndex(null);
     }
+  };
+
+  // Add insurance from lead: reset form, update with lead data including leadId, navigate to form
+  const handleAddInsuranceFromLead = (lead: Lead) => {
+    resetForm();
+    updateForm(mapLeadToFormData(lead));
+    navigate('/dashboard/insurance-case');
   };
 
   return (
@@ -316,65 +468,93 @@ const InsurancePage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedCases.length === 0 ? (
+              {paginatedRows.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-4 py-4 text-center text-gray-500">
-                    No insurance cases found.
+                    No insurance cases or leads found.
                   </td>
                 </tr>
               ) : (
-                paginatedCases.map((caseItem, index) => (
-                  <tr key={caseItem.id} className="hover:bg-gray-50 align-top">
-                    <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
-                      <div className="font-semibold text-gray-900">{caseItem.buyerName}</div>
-                      <div className="text-xs text-gray-500">{caseItem.mobileNumber}</div>
-                      <div className="text-xs text-gray-500">{caseItem.email}</div>
-                      <div className="text-xs text-gray-500">{caseItem.address}, {caseItem.city}</div>
-                      <div className="text-xs text-gray-500">Created: {caseItem.createdAt?.slice(0,10)}</div>
-                    </td>
-                    <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
-                      <div className="font-semibold text-gray-900">{caseItem.make} {caseItem.model} ({caseItem.variant})</div>
-                      <div className="text-xs text-gray-500">Reg: {caseItem.registerNumber}</div>
-                      <div className="text-xs text-gray-500">Year: {caseItem.makeMonthYear}</div>
-                    </td>
-                    <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
-                      <div className="text-xs font-semibold text-gray-900">No: {caseItem.policyNumber}</div>
-                      <div className="text-xs text-gray-500">{caseItem.insuranceCompany}</div>
-                      <div className="text-xs text-gray-500">Due: {caseItem.dueDate}</div>
-                      <div className="mt-1">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          caseItem.status === 'Expired'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {caseItem.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 md:px-4 py-3 text-left align-top min-w-[130px]">
-                      <div className="flex flex-row flex-wrap gap-2 md:flex-col md:gap-2">
-                        <button
-                          className="bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 min-w-[54px]"
-                          onClick={() => handleView(caseItem)}
-                        >
-                          View
-                        </button>
-                        <button
-                          className="bg-blue-600 text-white rounded px-2 py-1 text-xs hover:bg-blue-700 min-w-[54px]"
-                          onClick={() => handleEdit(caseItem)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="bg-red-600 text-white rounded px-2 py-1 text-xs hover:bg-red-700 min-w-[54px]"
-                          onClick={() => handleDelete(index)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                paginatedRows.map((row, index) => {
+                  if (row.type === 'case') {
+                    const caseItem = row.data;
+                    return (
+                      <tr key={`case-${caseItem.id}`} className="hover:bg-gray-50 align-top">
+                        <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
+                          <div className="font-semibold text-gray-900">{caseItem.buyerName}</div>
+                          <div className="text-xs text-gray-500">{caseItem.mobileNumber}</div>
+                          <div className="text-xs text-gray-500">{caseItem.email}</div>
+                          <div className="text-xs text-gray-500">{caseItem.address}, {caseItem.city}</div>
+                          <div className="text-xs text-gray-500">Created: {caseItem.createdAt?.slice(0,10)}</div>
+                        </td>
+                        <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
+                          <div className="font-semibold text-gray-900">{caseItem.make} {caseItem.model} ({caseItem.variant})</div>
+                          <div className="text-xs text-gray-500">Reg: {caseItem.registerNumber}</div>
+                          <div className="text-xs text-gray-500">Year: {caseItem.makeMonthYear}</div>
+                        </td>
+                        <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
+                          <div className="text-xs font-semibold text-gray-900">No: {caseItem.policyNumber}</div>
+                          <div className="text-xs text-gray-500">{caseItem.insuranceCompany}</div>
+                          <div className="text-xs text-gray-500">Due: {caseItem.dueDate}</div>
+                          <div className="mt-1">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              caseItem.status === 'Expired'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {caseItem.status}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-3 md:px-4 py-3 text-left align-top min-w-[130px]">
+                          <div className="flex flex-row flex-wrap gap-2 md:flex-col md:gap-2">
+                            <button
+                              className="bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 min-w-[54px]"
+                              onClick={() => handleView(caseItem)}
+                            >
+                              View
+                            </button>
+                            <button
+                              className="bg-blue-600 text-white rounded px-2 py-1 text-xs hover:bg-blue-700 min-w-[54px]"
+                              onClick={() => handleEdit(caseItem)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="bg-red-600 text-white rounded px-2 py-1 text-xs hover:bg-red-700 min-w-[54px]"
+                              onClick={() => handleDelete(index)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  } else {
+                    const lead = row.data;
+                    return (
+                      <tr key={`lead-${lead.id}`} className="hover:bg-gray-50 align-top ">
+                        <td className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
+                          <div className="font-semibold text-gray-900">{lead.firstName} {lead.lastName}</div>
+                          <div className="text-xs text-gray-500">{lead.phone}</div>
+                          <div className="text-xs text-gray-500">{lead.email}</div>
+                          <div className="text-xs text-gray-500">Created: {lead.createdAt?.slice(0,10)}</div>
+                        </td>
+                        <td colSpan={2} className="px-3 md:px-4 py-3 text-left align-top break-words min-w-[180px]">
+                          <span className="text-xs text-gray-400">No insurance data yet</span>
+                        </td>
+                        <td className="px-3 md:px-4 py-3 text-left align-top min-w-[130px]">
+                          <button
+                            className="bg-green-600 text-white rounded px-2 py-1 text-xs hover:bg-green-700 min-w-full "
+                            onClick={() => handleAddInsuranceFromLead(lead)}
+                          >
+                            Add Insurance
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  }
+                })
               )}
             </tbody>
           </table>
@@ -382,7 +562,7 @@ const InsurancePage: React.FC = () => {
           {/* Pagination Controls */}
           <div className="flex flex-col md:flex-row items-center justify-between px-4 py-2 gap-2">
             <div className="text-sm text-gray-600">
-              Showing {paginatedCases.length > 0 ? page * PAGE_SIZE + 1 : 0} to {Math.min((page + 1) * PAGE_SIZE, total)} of {total} entries
+              Showing {paginatedRows.length > 0 ? page * PAGE_SIZE + 1 : 0} to {Math.min((page + 1) * PAGE_SIZE, total)} of {total} entries
             </div>
             <div className="flex gap-1 flex-wrap">
               <button

@@ -6,15 +6,19 @@ const NomineeReferenceDetails = () => {
   const { form, updateForm } = useFormContext();
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     updateForm({ [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    // Add validation if needed
-    navigate("/dashboard/insurance-case/Vehicle-Details"); // Change to your next route
+    const nomineeRelation =
+      form.nomineeRelation === "Other"
+        ? form.nomineeRelationOther
+        : form.nomineeRelation;
+    // You can process nomineeRelation as needed here
+    navigate("/dashboard/insurance-case/Vehicle-Details");
   };
 
   return (
@@ -52,15 +56,31 @@ const NomineeReferenceDetails = () => {
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Relation</label>
-              <input
-                type="text"
+              <select
                 name="nomineeRelation"
                 value={form.nomineeRelation || ""}
-                required
                 onChange={handleChange}
+                required
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-                placeholder="Enter relation"
-              />
+              >
+                <option value="">Select relation</option>
+                <option value="Spouse">Spouse</option>
+                <option value="Parent">Parent</option>
+                <option value="Child">Child</option>
+                <option value="Sibling">Sibling</option>
+                <option value="Other">Other</option>
+              </select>
+              {form.nomineeRelation === "Other" && (
+                <input
+                  type="text"
+                  name="nomineeRelationOther"
+                  value={form.nomineeRelationOther || ""}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700 mt-2"
+                  placeholder="Enter relation"
+                />
+              )}
             </div>
           </div>
         </div>

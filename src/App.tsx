@@ -84,7 +84,9 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <InsurancePage />
+                  <FormProvider>
+                    <InsurancePage />
+                  </FormProvider>
                 </DashboardLayout>
               </ProtectedRoute>
             }

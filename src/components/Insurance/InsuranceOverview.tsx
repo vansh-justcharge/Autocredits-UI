@@ -88,6 +88,7 @@ const InsuranceCaseDetails = () => {
               onChange={handleChange}
               required
             >
+              <option value="">Select Insurance</option>
               <option value="New Car">New Car</option>
               <option value="Renewal">Renewal</option>
               <option value="Policy Already Expired">Policy Already Expired</option>

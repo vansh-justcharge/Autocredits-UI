@@ -456,16 +456,24 @@ const Quotes: React.FC = () => {
             <label className="block text-sm font-medium mb-1" htmlFor="add-insurer">
               Insurer
             </label>
-            <input
+            <select
               id="add-insurer"
-              className="w-full border rounded px-3 py-2"
               name="insurer"
-              placeholder="Insurer"
               value={form.insurer}
               onChange={handleChange}
               required
-            />
+              className="w-full border rounded px-3 py-2 bg-white"
+            >
+              <option value="">Select Insurer</option>
+              <option value="HDFC Ergo">HDFC Ergo</option>
+              <option value="ICICI Lombard">ICICI Lombard</option>
+              <option value="Bajaj Allianz">Bajaj Allianz</option>
+              <option value="TATA AIG">TATA AIG</option>
+              <option value="New India Assurance">New India Assurance</option>
+              {/* Add more insurers here as needed */}
+            </select>
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="add-premium">
               Premium
@@ -599,16 +607,24 @@ const Quotes: React.FC = () => {
             <label className="block text-sm font-medium mb-1" htmlFor="edit-insurer">
               Insurer
             </label>
-            <input
+            <select
               id="edit-insurer"
-              className="w-full border rounded px-3 py-2"
               name="insurer"
-              placeholder="Insurer"
               value={form.insurer}
               onChange={handleChange}
               required
-            />
+              className="w-full border rounded px-3 py-2 bg-white"
+            >
+              <option value="">Select Insurer</option>
+              <option value="HDFC Ergo">HDFC Ergo</option>
+              <option value="ICICI Lombard">ICICI Lombard</option>
+              <option value="Bajaj Allianz">Bajaj Allianz</option>
+              <option value="TATA AIG">TATA AIG</option>
+              <option value="New India Assurance">New India Assurance</option>
+              {/* Add more insurers if needed */}
+            </select>
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="edit-premium">
               Premium

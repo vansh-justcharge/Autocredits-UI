@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-type FormData = {
+export type FormData = {
+  leadId?: number;
   buyerName: string;
   mobileNumber: string;
   buyerType: string;
@@ -73,7 +74,8 @@ type FormData = {
   documentUrls: string[];
 };
 
-const defaultFormData: FormData = {
+export const defaultFormData: FormData = {
+  leadId: undefined,
   buyerName: "",
   mobileNumber: "",
   buyerType: "Individual",
@@ -146,13 +148,17 @@ const defaultFormData: FormData = {
   documentUrls: [],
 };
 
-const FormContext = createContext<{
+// 3. Context definition
+type FormContextType = {
   form: FormData;
   updateForm: (data: Partial<FormData>) => void;
   resetForm: () => void;
-} | null>(null);
+};
 
-export const FormProvider = ({ children }) => {
+const FormContext = createContext<FormContextType | null>(null);
+
+// 4. Provider
+export const FormProvider = ({ children }: { children: ReactNode }) => {
   const [form, setForm] = useState<FormData>(() => {
     const saved = localStorage.getItem("insuranceForm");
     return saved ? JSON.parse(saved) : defaultFormData;
@@ -178,6 +184,7 @@ export const FormProvider = ({ children }) => {
   );
 };
 
+// 5. Hook
 export const useFormContext = () => {
   const context = useContext(FormContext);
   if (!context) throw new Error("useFormContext must be used inside FormProvider");

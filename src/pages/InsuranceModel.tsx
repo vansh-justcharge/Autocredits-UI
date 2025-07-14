@@ -4,8 +4,8 @@ import Navbar from './Navbar';
 import axios from 'axios';
 
 // Helper functions
-const isImage = type => type && type.startsWith('image/');
-const isPDF = type => type === 'application/pdf';
+const isImage = url => url && /\.(jpe?g|png|gif|bmp|webp)$/i.test(url);
+const isPDF = url => url && /\.pdf$/i.test(url);
 
 // DocumentSection: Only stores files, doesn't upload
 const DocumentSection = ({
@@ -16,22 +16,10 @@ const DocumentSection = ({
   setPendingFiles
 }) => {
   const fileInputRef = useRef(null);
-  const [docs, setDocs] = useState(
-    (documentUrls || []).map(url =>
-      typeof url === 'string'
-        ? { url, type: url.endsWith('.pdf') ? 'application/pdf' : 'image/*' }
-        : url
-    )
-  );
+  const [docs, setDocs] = useState(documentUrls || []);
 
   useEffect(() => {
-    setDocs(
-      (documentUrls || []).map(url =>
-        typeof url === 'string'
-          ? { url, type: url.endsWith('.pdf') ? 'application/pdf' : 'image/*' }
-          : url
-      )
-    );
+    setDocs(documentUrls || []);
   }, [documentUrls]);
 
   // Only add to pendingFiles, do NOT upload here
@@ -57,12 +45,12 @@ const DocumentSection = ({
         {docs.length === 0 && pendingFiles.length === 0 && (
           <div className="text-gray-500">No documents uploaded.</div>
         )}
-        {docs.map((doc, idx) => (
+        {docs.map((url, idx) => (
           <div key={idx} className="relative w-72 h-72 border rounded bg-gray-100 flex flex-col items-center justify-center overflow-hidden">
-            {isImage(doc.type) ? (
-              <img src={doc.url} alt={`doc-${idx}`} className="object-contain w-full h-full" />
-            ) : isPDF(doc.type) ? (
-              <iframe src={doc.url} title={`pdf-${idx}`} className="w-full h-full" />
+            {isImage(url) ? (
+              <img src={url} alt={`doc-${idx}`} className="object-contain w-full h-full" />
+            ) : isPDF(url) ? (
+              <iframe src={url} title={`pdf-${idx}`} className="w-full h-full" />
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
                 <span className="text-xs text-gray-500">Unknown File</span>
@@ -82,29 +70,27 @@ const DocumentSection = ({
         ))}
         {/* Show pending files (not yet uploaded) */}
         {pendingFiles.map((file, idx) => {
-            const previewUrl = URL.createObjectURL(file);
-            return (
-              <div key={`pending-${idx}`} className="relative w-92 h-72 border rounded bg-yellow-100 flex flex-col items-center justify-center overflow-hidden">
-                {isImage(file.type) ? (
-                  <img src={previewUrl} alt={file.name} className="object-contain w-full h-full" />
-                ) : isPDF(file.type) ? (
-                  <iframe src={previewUrl} title={file.name} className="w-full h-full" />
-                ) : (
-                  <span className="text-xs text-gray-700">{file.name}</span>
-                )}
-                
-                <button
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs"
-                  type="button"
-                  onClick={() => removePendingFile(idx)}
-                  title="Remove"
-                >
-                  ×
-                </button>
-              </div>
-            );
-          })}
-
+          const previewUrl = URL.createObjectURL(file);
+          return (
+            <div key={`pending-${idx}`} className="relative w-92 h-72 border rounded bg-yellow-100 flex flex-col items-center justify-center overflow-hidden">
+              {isImage(file.name) ? (
+                <img src={previewUrl} alt={file.name} className="object-contain w-full h-full" />
+              ) : isPDF(file.name) ? (
+                <iframe src={previewUrl} title={file.name} className="w-full h-full" />
+              ) : (
+                <span className="text-xs text-gray-700">{file.name}</span>
+              )}
+              <button
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full px-2 py-0.5 text-xs"
+                type="button"
+                onClick={() => removePendingFile(idx)}
+                title="Remove"
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
       </div>
       {editable && (
         <div className="mt-4">
@@ -185,7 +171,7 @@ const InsuranceModel = () => {
     }));
   };
 
-  // For document URLs, handle as an array of objects {url, type}
+  // For document URLs, handle as an array of strings
   const handleDocumentUrlsChange = (docs) => {
     setEditForm(prev => ({
       ...prev,
@@ -197,7 +183,7 @@ const InsuranceModel = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      let uploadedDocs = [];
+      let uploadedUrls = [];
       // Upload all pending files
       if (pendingFiles.length > 0) {
         for (const file of pendingFiles) {
@@ -208,25 +194,37 @@ const InsuranceModel = () => {
             formData,
             { headers: { "Content-Type": "multipart/form-data" } }
           );
-          const url = uploadRes.data.url;
-          const type = file.type;
-          uploadedDocs.push({ url, type });
+          uploadedUrls.push(uploadRes.data.url);
         }
       }
-      // Combine with already existing docs
-      const finalDocs = [
-        ...(editForm.documentUrls || []).filter(doc => typeof doc === 'string' || doc.url),
-        ...uploadedDocs
-      ];
-      // Save to DB
+      // Combine with already existing docs (as strings)
+      const existingDocs = (editForm.documentUrls || []).filter(url => typeof url === 'string');
+      const finalDocs = [...existingDocs, ...uploadedUrls];
+
+      // Prepare features as array of strings
+      const featuresArray =
+        Array.isArray(editForm.features)
+          ? editForm.features
+          : typeof editForm.features === 'string'
+            ? editForm.features.split(',').map(f => f.trim())
+            : [];
+
+      // Prepare payload: remove any nested objects (like `lead`)
+      const {
+        lead, // remove nested lead object if present
+        ...payload
+      } = editForm;
+
       await axios.put(
         `${import.meta.env.VITE_BACKEND_API_URL}/insurance/update/${editForm.id}`,
         {
-          ...editForm,
-          documentUrls: finalDocs.map(doc => typeof doc === 'string' ? doc : doc.url),
+          ...payload,
+          features: featuresArray,
+          documentUrls: finalDocs
         }
       );
       alert('Insurance case updated successfully!');
+      setPendingFiles([]); // Clear pending files after save
       navigate(-1);
     } catch (err) {
       alert('Failed to update insurance case.');
@@ -237,15 +235,15 @@ const InsuranceModel = () => {
   // DropDown Option
   const DROPDOWN_OPTIONS = {
     buyerTypes: ['Individual', 'Company'],
-    insuranceCategory: ["New Car","Renewal","Policy Already Expired","Used Car"],
-    source: ["Dealer","Online","Referral"],
-    status: ["Follow up","Closed","Pending"],
+    insuranceCategory: ["New Car", "Renewal", "Policy Already Expired", "Used Car"],
+    source: ["Dealer", "Online", "Referral"],
+    status: ["Follow up", "Closed", "Pending"],
     genders: ['Male', 'Female'],
     maritalStatuses: ['Single', 'Married'],
-    inspectionStatus:["Pending","Complete"],
-    ncbDisCount:["0%","20%","25%","35","50%"],
-    policyIssued:["Yes","No"],
-    policyType:["Comprehensive","Third Party"],
+    inspectionStatus: ["Pending", "Complete"],
+    ncbDisCount: ["0%", "20%", "25%", "35%", "50%"],
+    policyIssued: ["Yes", "No"],
+    policyType: ["Comprehensive", "Third Party"],
     paymentModes: ['Cash', 'Cheque', 'Online'],
   };
 
@@ -263,9 +261,13 @@ const InsuranceModel = () => {
           </svg>
         </button>
 
-       {/* User Basic Information */}
+        {/* User Basic Information */}
         <CollapsibleSection expanded={userInfoExpanded} onToggle={() => setUserInfoExpanded(e => !e)} title="User Basic Information">
           <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <EditableField label="Buyer Name" value={editForm?.buyerName} editable={mode === 'edit'} onChange={val => handleRootChange('buyerName', val)} />
+            <EditableField label="Mobile Number" value={editForm?.mobileNumber} editable={mode === 'edit'} onChange={val => handleRootChange('mobileNumber', val)} />
+            <EditableField label="Email" value={editForm?.email} editable={mode === 'edit'} onChange={val => handleRootChange('email', val)} />
+            <EditableField label="Address" value={editForm?.address} editable={mode === 'edit'} onChange={val => handleRootChange('address', val)} />
             <EditableField label="Buyer Type" value={editForm?.buyerType} editable={mode === 'edit'} onChange={val => handleRootChange('buyerType', val)} options={DROPDOWN_OPTIONS.buyerTypes} />
             <EditableField label="Insurance Category" value={editForm?.insuranceCategory} editable={mode === 'edit'} onChange={val => handleRootChange('insuranceCategory', val)} options={DROPDOWN_OPTIONS.insuranceCategory} />
             <EditableField label="Source" value={editForm?.source} editable={mode === 'edit'} onChange={val => handleRootChange('source', val)} options={DROPDOWN_OPTIONS.source} />
@@ -275,13 +277,7 @@ const InsuranceModel = () => {
             <EditableField label="Case Comment" value={editForm?.caseComment} editable={mode === 'edit'} onChange={val => handleRootChange('caseComment', val)} />
             <EditableField label="City" value={editForm?.city} editable={mode === 'edit'} onChange={val => handleRootChange('city', val)} />
             <EditableField label="Pin" value={editForm?.pin} editable={mode === 'edit'} onChange={val => handleRootChange('pin', val)} />
-            <EditableField
-              label="Gender"
-              value={editForm?.gender}
-              editable={mode === 'edit'}
-              onChange={val => handleRootChange('gender', val)}
-              options={DROPDOWN_OPTIONS.genders}
-            />
+            <EditableField label="Gender" value={editForm?.gender} editable={mode === 'edit'} onChange={val => handleRootChange('gender', val)} options={DROPDOWN_OPTIONS.genders} />
             <EditableField label="Marital Status" value={editForm?.maritalStatus} editable={mode === 'edit'} onChange={val => handleRootChange('maritalStatus', val)} options={DROPDOWN_OPTIONS.maritalStatuses} />
             <EditableField label="DOB" value={editForm?.dob} editable={mode === 'edit'} onChange={val => handleRootChange('dob', val)} type="date" />
             <EditableField label="Occupation" value={editForm?.occupation} editable={mode === 'edit'} onChange={val => handleRootChange('occupation', val)} />
@@ -344,7 +340,7 @@ const InsuranceModel = () => {
             <EditableField label="Quote Insurance Duration" value={editForm?.quoteInsuranceDuration} editable={mode === 'edit'} onChange={val => handleRootChange('quoteInsuranceDuration', val)} />
             <EditableField label="Quote IDV" value={editForm?.quoteIDV} editable={mode === 'edit'} onChange={val => handleRootChange('quoteIDV', val)} />
             <EditableField label="Quote Total Premium" value={editForm?.quoteTotalPremium} editable={mode === 'edit'} onChange={val => handleRootChange('quoteTotalPremium', val)} />
-            <EditableField label="Features" value={editForm?.features?.join(', ')} editable={mode === 'edit'} onChange={val => handleArrayChange('features', val)} />
+            <EditableField label="Features" value={Array.isArray(editForm?.features) ? editForm.features.join(', ') : ''} editable={mode === 'edit'} onChange={val => handleArrayChange('features', val)} />
           </div>
         </CollapsibleSection>
 
@@ -380,7 +376,7 @@ const InsuranceModel = () => {
         {/* Document Details */}
         <CollapsibleSection expanded={documentInfoExpanded} onToggle={() => setDocumentInfoExpanded(e => !e)} title="Documents">
           <DocumentSection
-            documentUrls={mode === 'edit' ? editForm?.documentUrls || [] : insuranceCase?.documentUrls || []}
+            documentUrls={editForm?.documentUrls || []}
             editable={mode === 'edit'}
             onChange={handleDocumentUrlsChange}
             pendingFiles={pendingFiles}
@@ -435,6 +431,7 @@ const EditableField = ({ label, value, editable, onChange, type = 'text', option
           value={value || ''}
           onChange={e => onChange(e.target.value)}
         >
+          <option value="">Select {label}</option>
           {options.map(opt => (
             <option key={opt} value={opt}>
               {opt}

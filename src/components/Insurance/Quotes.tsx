@@ -205,7 +205,7 @@ const Quotes: React.FC = () => {
       quoteTotalPremium: form.quoteTotalPremium.trim(),
     };
     try {
-      const res = await axios.put(`${API_BASE}/update/${modal.quote.id}`, updatedQuote);
+      const res = await axios.put(`${API_BASE}/api/quote/update/${modal.quote.id}`, updatedQuote);
       if (res.data && res.status !== 204) {
         setQuotes(
           quotes.map((q) =>
@@ -226,7 +226,7 @@ const Quotes: React.FC = () => {
   const handleDelete = async () => {
     if (modal.quote) {
       try {
-        await axios.delete(`${API_BASE}/delete/${modal.quote.id}`);
+        await axios.delete(`${API_BASE}/api/quote/delete/${modal.quote.id}`);
         setQuotes(quotes.filter((q) => q.id !== modal.quote?.id));
       } catch (err) {
         console.error('Error deleting quote', err);

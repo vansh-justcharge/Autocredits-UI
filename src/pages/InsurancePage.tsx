@@ -217,9 +217,9 @@ const InsurancePage: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const casesRes = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/insurance/get`);
+        const casesRes = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/insurance/get`);
         setAllCases(casesRes.data || []);
-        const leadsRes = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/leads?service=Insurance`);
+        const leadsRes = await axios.get(`${import.meta.env.VITE_BACKEND_API_URL}/api/leads?service=Insurance`);
         setInsuranceLeads(leadsRes.data || []);
       } catch (err) {
         setAllCases([]);
@@ -337,7 +337,7 @@ const InsurancePage: React.FC = () => {
     }
     const caseToDelete = row.data;
     try {
-      await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/insurance/delete/${caseToDelete.id}`);
+      await axios.delete(`${import.meta.env.VITE_BACKEND_API_URL}/api/insurance/delete/${caseToDelete.id}`);
       const globalIndex = allCases.findIndex((item) => item.id === caseToDelete.id);
       if (globalIndex !== -1) {
         const newCases = [...allCases];

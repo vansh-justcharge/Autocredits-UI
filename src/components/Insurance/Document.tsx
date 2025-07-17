@@ -37,7 +37,7 @@ const DocumentUploadScreen = () => {
         formData.append("file", file);
 
         const res = await axios.post(
-          `${import.meta.env.VITE_BACKEND_API_URL}/upload/file`,
+          `${import.meta.env.VITE_BACKEND_API_URL}/api/upload/file`,
           formData,
           {
             headers: {
@@ -52,7 +52,7 @@ const DocumentUploadScreen = () => {
 
       updateForm({ documentUrls: urls });
 
-      const apiUrl = `${import.meta.env.VITE_BACKEND_API_URL}/insurance/create`;
+      const apiUrl = `${import.meta.env.VITE_BACKEND_API_URL}/api/insurance/create`;
       const res = await axios.post(apiUrl, { ...form, documentUrls: urls });
 
       if (res.status === 200 || res.status === 201) {

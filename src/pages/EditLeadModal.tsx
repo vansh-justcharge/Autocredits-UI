@@ -99,7 +99,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ isOpen, onClose, lead, on
         throw new Error('No authorization token found. Please log in again.');
       }
 
-      const response = await fetch(`${API_URL}/leads/${lead._id}`, {
+      const response = await fetch(`${API_URL}/api/leads/${lead._id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

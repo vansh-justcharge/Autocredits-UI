@@ -190,7 +190,7 @@ const InsuranceModel = () => {
           const formData = new FormData();
           formData.append("file", file);
           const uploadRes = await axios.post(
-            `${import.meta.env.VITE_BACKEND_API_URL}/upload/file`,
+            `${import.meta.env.VITE_BACKEND_API_URL}/api/upload/file`,
             formData,
             {
               headers: {
@@ -221,7 +221,7 @@ const InsuranceModel = () => {
       } = editForm;
 
       await axios.put(
-        `${import.meta.env.VITE_BACKEND_API_URL}/insurance/update/${editForm.id}`,
+        `${import.meta.env.VITE_BACKEND_API_URL}/api/insurance/update/${editForm.id}`,
         {
           ...payload,
           features: featuresArray,

@@ -83,7 +83,7 @@ const Quotes: React.FC = () => {
   // Fetch quotes from API on mount
   const fetchQuotes = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/get`);
+      const res = await axios.get(`${API_BASE}/api/quote/get`);
       setQuotes(res.data);
     } catch (err) {
       console.error('Error fetching quotes', err);

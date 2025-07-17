@@ -190,7 +190,8 @@ const SOURCE_OPTIONS = [
 const STATUS_OPTIONS = [
   "Status",
   "Pending",
-  "Completed"
+  "Follow Up",
+  "Closed"
 ];
 
 type TableRow = { type: 'case', data: InsuranceCase } | { type: 'lead', data: Lead };
@@ -244,47 +245,60 @@ const InsurancePage: React.FC = () => {
 
   // Filtering logic for both cases and leads
   const filteredRows = mergedRows.filter((row) => {
-    if (row.type === 'case') {
-      const c = row.data;
-      const dealerSearch = filters.dealer.trim().toLowerCase();
-      if (dealerSearch) {
-        if (
-          !(c.buyerName?.toLowerCase().includes(dealerSearch) ||
-            c.mobileNumber?.toLowerCase().includes(dealerSearch))
-        ) return false;
-      }
-      if (filters.source !== 'Source' && c.source !== filters.source) return false;
-      if (filters.status !== 'Status' && c.status !== filters.status) return false;
-      if (filters.fromDate && filters.toDate) {
-        const created = c.createdAt?.slice(0, 10);
-        if (created < filters.fromDate || created > filters.toDate) return false;
-      } else if (filters.fromDate) {
-        if ((c.createdAt?.slice(0, 10) || '') < filters.fromDate) return false;
-      } else if (filters.toDate) {
-        if ((c.createdAt?.slice(0, 10) || '') > filters.toDate) return false;
-      }
-      return true;
-    } else {
-      const l = row.data;
-      const dealerSearch = filters.dealer.trim().toLowerCase();
-      if (dealerSearch) {
-        if (
-          !((`${l.firstName} ${l.lastName}`)?.toLowerCase().includes(dealerSearch) ||
-            l.phone?.toLowerCase().includes(dealerSearch))
-        ) return false;
-      }
-      if (filters.source !== 'Source' && l.source !== filters.source) return false;
-      if (filters.fromDate && filters.toDate) {
-        const created = l.createdAt?.slice(0, 10);
-        if (created && (created < filters.fromDate || created > filters.toDate)) return false;
-      } else if (filters.fromDate) {
-        if ((l.createdAt?.slice(0, 10) || '') < filters.fromDate) return false;
-      } else if (filters.toDate) {
-        if ((l.createdAt?.slice(0, 10) || '') > filters.toDate) return false;
-      }
-      return true;
+  const dealerSearch = filters.dealer.trim().toLowerCase();
+  const statusFilter = filters.status !== 'Status';
+  const sourceFilter = filters.source !== 'Source';
+
+  if (row.type === 'case') {
+    const c = row.data;
+
+    // Dealer search
+    if (dealerSearch) {
+      if (
+        !(c.buyerName?.toLowerCase().includes(dealerSearch) ||
+          c.mobileNumber?.toLowerCase().includes(dealerSearch))
+      ) return false;
     }
-  });
+
+    // Source filter
+    if (sourceFilter && c.source !== filters.source) return false;
+
+    // Status filter
+    if (statusFilter && c.status !== filters.status) return false;
+
+    // Date filters
+    const created = c.createdAt?.slice(0, 10) || '';
+    if (filters.fromDate && created < filters.fromDate) return false;
+    if (filters.toDate && created > filters.toDate) return false;
+
+    return true;
+
+  } else {
+    const l = row.data;
+
+    // Dealer search
+    if (dealerSearch) {
+      if (
+        !((`${l.firstName} ${l.lastName}`)?.toLowerCase().includes(dealerSearch) ||
+          l.phone?.toLowerCase().includes(dealerSearch))
+      ) return false;
+    }
+
+    // Source filter
+    if (sourceFilter && l.source !== filters.source) return false;
+
+    // ✅ Add missing Status filter for non-case rows
+    if (statusFilter && l.status !== filters.status) return false;
+
+    // Date filters
+    const created = l.createdAt?.slice(0, 10) || '';
+    if (filters.fromDate && created < filters.fromDate) return false;
+    if (filters.toDate && created > filters.toDate) return false;
+
+    return true;
+  }
+});
+
 
   const total = filteredRows.length;
   const pageCount = Math.ceil(total / PAGE_SIZE);

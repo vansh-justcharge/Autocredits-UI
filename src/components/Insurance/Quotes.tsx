@@ -173,7 +173,7 @@ const Quotes: React.FC = () => {
       quoteTotalPremium: form.quoteTotalPremium.trim(),
     };
     try {
-      const res = await axios.post(`${API_BASE}/create`, newQuote);
+      const res = await axios.post(`${API_BASE}/api/quote/create`, newQuote);
       if (res.data && res.status !== 204) {
         setQuotes([res.data, ...quotes]);
       } else {

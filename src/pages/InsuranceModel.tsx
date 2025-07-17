@@ -202,7 +202,7 @@ const InsuranceModel = () => {
           uploadedUrls.push(uploadRes.data.url);
         }
       }
-      // Combine with already existing docs (as strings)
+      // Combine with already existing docs
       const existingDocs = (editForm.documentUrls || []).filter(url => typeof url === 'string');
       const finalDocs = [...existingDocs, ...uploadedUrls];
 

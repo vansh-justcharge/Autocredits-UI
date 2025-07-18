@@ -79,7 +79,7 @@ const NomineeReferenceDetails = () => {
                     : "Other"
                 }
               >
-                <option value="">Select relation</option>
+                <option value="" disabled>Select relation</option>
                 <option value="Spouse">Spouse</option>
                 <option value="Parent">Parent</option>
                 <option value="Child">Child</option>

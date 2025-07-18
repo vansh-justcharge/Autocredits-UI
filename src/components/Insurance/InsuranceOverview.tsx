@@ -88,7 +88,7 @@ const InsuranceCaseDetails = () => {
               onChange={handleChange}
               required
             >
-              <option value="">Select Insurance</option>
+              <option value="" disabled >Select Insurance</option>
               <option value="New Car">New Car</option>
               <option value="Renewal">Renewal</option>
               <option value="Policy Already Expired">Policy Already Expired</option>
@@ -105,6 +105,7 @@ const InsuranceCaseDetails = () => {
               onChange={handleChange}
               required
             >
+              <option value="" disabled>Select Source</option>
               <option value="Dealer">Dealer</option>
               <option value="Online">Online</option>
               <option value="Referral">Referral</option>
@@ -120,6 +121,7 @@ const InsuranceCaseDetails = () => {
               onChange={handleChange}
               required
             >
+              <option value="" disabled>Select Status</option>
               <option value="Follow up">Follow up</option>
               <option value="Closed">Closed</option>
               <option value="Pending">Pending</option>

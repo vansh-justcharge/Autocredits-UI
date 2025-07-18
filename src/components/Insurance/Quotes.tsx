@@ -464,7 +464,7 @@ const Quotes: React.FC = () => {
               required
               className="w-full border rounded px-3 py-2 bg-white"
             >
-              <option value="">Select Insurer</option>
+              <option value="" disabled>Select Insurer</option>
               <option value="HDFC Ergo">HDFC Ergo</option>
               <option value="ICICI Lombard">ICICI Lombard</option>
               <option value="Bajaj Allianz">Bajaj Allianz</option>
@@ -515,6 +515,7 @@ const Quotes: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="" disabled>Select NCB</option>
               <option value="0%">0%</option>
               <option value="20%">20%</option>
               <option value="25%">25%</option>
@@ -615,7 +616,7 @@ const Quotes: React.FC = () => {
               required
               className="w-full border rounded px-3 py-2 bg-white"
             >
-              <option value="">Select Insurer</option>
+              <option value="" disabled>Select Insurer</option>
               <option value="HDFC Ergo">HDFC Ergo</option>
               <option value="ICICI Lombard">ICICI Lombard</option>
               <option value="Bajaj Allianz">Bajaj Allianz</option>
@@ -666,6 +667,7 @@ const Quotes: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="" disabled>Select NCB</option>
               <option value="0%">0%</option>
               <option value="20%">20%</option>
               <option value="25%">25%</option>

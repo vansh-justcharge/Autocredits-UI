@@ -53,6 +53,7 @@ const NewPolicyDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             >
+              <option value="" disabled>Select Policy Issued</option>
               <option value="Yes">Yes</option>
               <option value="No">No</option>
             </select>
@@ -93,7 +94,7 @@ const NewPolicyDetails = () => {
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
             >
-              <option value="">Select</option>
+              <option value="" disabled>Select</option>
               <option value="Comprehensive">Comprehensive</option>
               <option value="Third Party">Third Party</option>
             </select>

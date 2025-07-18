@@ -202,18 +202,20 @@ const CustomerDetails = () => {
             />
           </div>
           {/* GST No */}
-          <div>
-            <label className="block text-sm font-semibold mb-1">GST No</label>
-            <input
-              type="text"
-              name="gst"
-              value={form.gst || ""}
-              onChange={handleChange}
-              className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-              placeholder="Enter GST No"
-              required
-            />
-          </div>
+          {form.buyerType !== "Individual" && (
+            <div>
+              <label className="block text-sm font-semibold mb-1">GST No</label>
+              <input
+                type="text"
+                name="gst"
+                value={form.gst || ""}
+                onChange={handleChange}
+                className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
+                placeholder="Enter GST No"
+                required
+              />
+            </div>
+          )}
         </div>
         <div className="mt-8 flex justify-end">
           <button

@@ -22,18 +22,29 @@ const PreviousPolicyDetails = () => {
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-2 gap-x-8 gap-y-5">
           {/* Insurance Company */}
-          <div>
+            <div>
             <label className="block text-sm font-semibold mb-1">Insurance Company</label>
-            <input
-              type="text"
+            <select
               name="insuranceCompany"
               value={form.insuranceCompany || ""}
               onChange={handleChange}
               className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
-              placeholder="Enter insurance company"
               required
-            />
-          </div>
+            >
+              <option value="" disabled>
+              Select insurance company
+              </option>
+              <option value="ICICI Lombard">ICICI Lombard</option>
+              <option value="HDFC ERGO">HDFC ERGO</option>
+              <option value="Bajaj Allianz">Bajaj Allianz</option>
+              <option value="Tata AIG">Tata AIG</option>
+              <option value="Reliance General">Reliance General</option>
+              <option value="SBI General">SBI General</option>
+              <option value="New India Assurance">New India Assurance</option>
+              <option value="United India Insurance">United India Insurance</option>
+              <option value="Oriental Insurance">Oriental Insurance</option>
+            </select>
+            </div>
           {/* Branch */}
           <div>
             <label className="block text-sm font-semibold mb-1">Branch</label>

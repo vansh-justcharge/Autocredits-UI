@@ -11,15 +11,29 @@ const NomineeReferenceDetails = () => {
     updateForm({ [name]: value });
   };
 
+  const handleRelationSelect = (e) => {
+    const { value } = e.target;
+    if (value === "Other") {
+      updateForm({ nomineeRelation: "" }); // Clear to let user type custom relation
+    } else {
+      updateForm({ nomineeRelation: value });
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const nomineeRelation =
-      form.nomineeRelation === "Other"
-        ? form.nomineeRelationOther
-        : form.nomineeRelation;
-    // You can process nomineeRelation as needed here
+
+    if (!form.nomineeRelation || form.nomineeRelation.trim() === "") {
+      alert("Please provide a valid nominee relation.");
+      return;
+    }
+
     navigate("/dashboard/insurance-case/Vehicle-Details");
   };
+
+  const isCustomRelation =
+    form.nomineeRelation &&
+    !["Spouse", "Parent", "Child", "Sibling"].includes(form.nomineeRelation);
 
   return (
     <div className="max-w-full mx-auto p-8 bg-white rounded shadow">
@@ -49,19 +63,21 @@ const NomineeReferenceDetails = () => {
                 value={form.nomineeAge || ""}
                 onChange={handleChange}
                 required
+                min="0"
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
                 placeholder="Enter age"
-                min="0"
               />
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Relation</label>
               <select
-                name="nomineeRelation"
-                value={form.nomineeRelation || ""}
-                onChange={handleChange}
-                required
+                onChange={handleRelationSelect}
                 className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700"
+                value={
+                  ["Spouse", "Parent", "Child", "Sibling"].includes(form.nomineeRelation)
+                    ? form.nomineeRelation
+                    : "Other"
+                }
               >
                 <option value="">Select relation</option>
                 <option value="Spouse">Spouse</option>
@@ -70,20 +86,22 @@ const NomineeReferenceDetails = () => {
                 <option value="Sibling">Sibling</option>
                 <option value="Other">Other</option>
               </select>
-              {form.nomineeRelation === "Other" && (
+
+              {(form.nomineeRelation === "" || isCustomRelation) && (
                 <input
                   type="text"
-                  name="nomineeRelationOther"
-                  value={form.nomineeRelationOther || ""}
+                  name="nomineeRelation"
+                  value={form.nomineeRelation}
                   onChange={handleChange}
                   required
                   className="w-full bg-gray-100 border border-gray-200 rounded px-3 py-2 text-gray-700 mt-2"
-                  placeholder="Enter relation"
+                  placeholder="Enter custom relation"
                 />
               )}
             </div>
           </div>
         </div>
+
         {/* Reference Details */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-2">Reference Details</h3>
@@ -114,6 +132,7 @@ const NomineeReferenceDetails = () => {
             </div>
           </div>
         </div>
+
         <div className="flex justify-end">
           <button
             type="submit"
